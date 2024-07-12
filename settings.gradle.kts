@@ -23,4 +23,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "RingOfRings"
 include(":app")
- 
+include(":ringcore")
