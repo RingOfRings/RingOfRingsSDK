@@ -2,6 +2,7 @@ package com.hyperring.ringofrings.core
 
 import NetworkUtil
 import android.content.Context
+import com.hyperring.ringofrings.core.utils.CryptoUtil
 
 class RingCore {
     fun createWallet(context: Context) {
@@ -11,7 +12,7 @@ class RingCore {
 //            // todo network err
 //        }
         // Create Mnemonic
-
+        var mnemonic = CryptoUtil.generateMnemonic()
         // Get Private Key
         // Get Public Key
     }
