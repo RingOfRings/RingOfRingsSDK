@@ -47,4 +47,6 @@ dependencies {
     implementation("org.web3j:core:4.8.9-android")
     implementation("com.google.crypto.tink:tink-android:1.6.1")
     implementation("com.google.crypto.tink:tink:1.6.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }
