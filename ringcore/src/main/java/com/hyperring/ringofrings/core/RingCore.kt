@@ -1,5 +1,6 @@
 package com.hyperring.ringofrings.core
 
+import NetworkUtil
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -10,6 +11,40 @@ class RingCore {
     companion object {
         private const val FILE_NAME = "ring_of_rings"
         var sharedPrefs : EncryptedSharedPreferences? = null
+        fun isNetworkAvailable(context: Context): Boolean {
+            initSharedPrefs(context)
+            return NetworkUtil.isNetworkAvailable(context)
+        }
+
+        fun checkHasAlchemyKey(context: Context): Boolean {
+            initSharedPrefs(context).let {
+                var alchemyKey: String? = sharedPrefs?.getString("alchemy_key", null)
+                return alchemyKey != null
+            }
+        }
+
+        private fun initSharedPrefs(context: Context) {
+            if(sharedPrefs == null) {
+                val masterKeyAlias = MasterKey
+                    .Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+
+                EncryptedSharedPreferences.create(
+                    context,
+                    FILE_NAME,
+                    masterKeyAlias,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            }
+        }
+
+        fun hasWallet(context: Context): Boolean {
+//            sharedPrefs.getString("")
+            // todo
+            return true
+        }
     }
 
     fun createWallet(context: Context) {
@@ -24,23 +59,6 @@ class RingCore {
         var mnemonic = CryptoUtil.generateMnemonic()
         // Get Private Key
         // Get Public Key
-    }
-
-    private fun initSharedPrefs(context: Context) {
-        if(sharedPrefs == null) {
-            val masterKeyAlias = MasterKey
-                .Builder(context, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-
-            EncryptedSharedPreferences.create(
-                context,
-                FILE_NAME,
-                masterKeyAlias,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            )
-        }
     }
 
     fun importWalletAddress() {

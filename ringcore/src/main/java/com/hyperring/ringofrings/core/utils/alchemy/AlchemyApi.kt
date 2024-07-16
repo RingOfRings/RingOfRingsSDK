@@ -4,12 +4,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 
-class AlchemyApi(apiKey: String) {
+class AlchemyApi(apiKey: String?) {
     val service: AlchemyService
 
     init {
         val retrofit = Retrofit.Builder()
-            .baseUrl(getNFTListURL(apiKey))
+            .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -17,10 +17,6 @@ class AlchemyApi(apiKey: String) {
     }
 
     companion object {
-        fun getNFTListURL(key: String) : String {
-            return "https://eth-mainnet.g.alchemy.com/v2/$key/getNFTs/?owner=vitalik.eth"
-        }
-//        curl '/getNFTs/?owner=vitalik.eth'
-
+        private const val BASE_URL = "https://eth-mainnet.g.alchemy.com"
     }
 }

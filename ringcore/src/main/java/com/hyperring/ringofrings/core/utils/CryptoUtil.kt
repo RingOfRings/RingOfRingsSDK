@@ -1,4 +1,5 @@
 package com.hyperring.ringofrings.core.utils
+import android.content.Context
 import com.google.crypto.tink.subtle.Ed25519Sign
 import com.google.crypto.tink.subtle.Ed25519Verify
 import org.bouncycastle.math.ec.rfc8032.Ed25519
@@ -73,6 +74,5 @@ class CryptoUtil {
                 e.printStackTrace()
             }
         }
-        /// todo check it
     }
 }
