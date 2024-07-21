@@ -1,5 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id("com.android.library")
+//    alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
 
@@ -8,11 +9,11 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.hyperring.ringofrings.core"
+//        applicationId = "com.hyperring.ringofrings.core"
         minSdk = 25
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+//        targetSdk = 34
+//        versionCode = 1
+//        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,7 +47,7 @@ dependencies {
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
     implementation("org.web3j:core:4.8.9-android")
     implementation("com.google.crypto.tink:tink-android:1.6.1")
-    implementation("com.google.crypto.tink:tink:1.6.1")
+//    implementation("com.google.crypto.tink:tink:1.6.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }
