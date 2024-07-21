@@ -1,11 +1,14 @@
 package com.hyperring.ringofrings.core
-
 import NetworkUtil
 import android.content.Context
-import android.content.SharedPreferences
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.widget.Toast
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.hyperring.ringofrings.core.utils.CryptoUtil
+import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
+import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 
 class RingCore {
     companion object {
@@ -41,67 +44,73 @@ class RingCore {
         }
 
         fun hasWallet(context: Context): Boolean {
-//            sharedPrefs.getString("")
-            // todo
-            return true
+            return CryptoUtil.hasWallet(sharedPrefs)
         }
-    }
 
-    fun createWallet(context: Context) {
-        initSharedPrefs(context)
+        fun createWallet(context: Context): RingCryptoResponse? {
+            initSharedPrefs(context)
 
-//        // Check Network ???
-//        var isNetworkAvailable = NetworkUtil.isNetworkAvailable(context)
-//        if(!isNetworkAvailable) {
-//            // todo network err
-//        }
-        // Create Mnemonic
-        var mnemonic = CryptoUtil.generateMnemonic()
-        // Get Private Key
-        // Get Public Key
-    }
+        // Check Network ???
+        val isNetworkAvailable = NetworkUtil.isNetworkAvailable(context)
+        if(!isNetworkAvailable) {
+            showToast(context, "Network Error.")
+            return null
+        }
+        return CryptoUtil.createWallet()
+        }
 
-    fun importWalletAddress() {
+        /**
+         * todo vault address is public key check it
+         */
+        fun importWalletAddress() {
 
-    }
+        }
 
-    fun getWalletData() {
+        fun getWalletData() {
 
-    }
+        }
 
-    fun setWalletData() {
+        fun setWalletData() {
 
-    }
+        }
 
-    fun setWalletDataToRing() {
+        fun setWalletDataToRing() {
 
-    }
+        }
 
-    fun startPollingRingWalletData() {
+        fun startPollingRingWalletData() {
 
-    }
+        }
 
-    fun stopPollingRingWalletData() {
+        fun stopPollingRingWalletData() {
 
-    }
+        }
 
-    fun setAlchemyAPIKey() {
+        fun setAlchemyAPIKey() {
 
-    }
+        }
 
-    fun setTokenImport() {
+        fun setTokenImport() {
 
-    }
+        }
 
-    fun getMyTokens() {
+        fun getMyTokens() {
 
-    }
+        }
 
-    fun signing() {
+        fun signing() {
 
-    }
+        }
 
-    fun transactionToken() {
+        fun transactionToken() {
 
+        }
+
+        fun showToast(context: Context, text: String) {
+            Log.d("RingCore", "text: $text")
+            val handler = Handler(Looper.getMainLooper())
+            handler.postDelayed({
+                Toast.makeText(context, text, Toast.LENGTH_SHORT).show() }, 0)
+        }
     }
 }

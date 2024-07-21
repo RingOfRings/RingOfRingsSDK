@@ -1,12 +1,5 @@
 package com.hyperring.ringofrings
-import NetworkUtil
-import android.app.Activity
-import android.content.Context
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -39,21 +32,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.hyperring.ringofrings.core.RingCore
-import com.hyperring.ringofrings.core.utils.CryptoUtil
-import com.hyperring.ringofrings.data.nfc.AESHRData
-import com.hyperring.ringofrings.data.nfc.AESWalletHRData
-import com.hyperring.ringofrings.data.nfc.JWTHRData
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
-import com.hyperring.sdk.core.nfc.HyperRingNFC
-import com.hyperring.sdk.core.nfc.HyperRingTag
 import com.hyperring.sdk.core.nfc.NFCStatus
-import io.jsonwebtoken.Jwts
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.crypto.SecretKey
 
 
 /**
