@@ -1,4 +1,5 @@
 package com.hyperring.ringofrings
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +33,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
 import com.hyperring.sdk.core.nfc.NFCStatus
@@ -88,12 +92,24 @@ class SplashActivity : ComponentActivity() {
 
 @Composable
 fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
-    var text by remember { mutableStateOf("") }
+    val masterKeyAlias = MasterKey
+        .Builder(LocalContext.current, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    val sharedPrefs = EncryptedSharedPreferences.create(
+        LocalContext.current,
+        "Ring_of_rings_demo",
+        masterKeyAlias,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+    var text by remember { mutableStateOf(sharedPrefs.getString("Alchemy API Key", "")) }
     OutlinedTextField(
-        value = text,
+        value = text?:"",
         onValueChange = {
             text = it
-            viewModel.updateAlchemyKey(text)
+            viewModel.updateAlchemyKey(text?:"", sharedPrefs)
         },
         label = { Text("Alchemy API Key") }
     )
@@ -101,9 +117,14 @@ fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
 
 @Composable
 fun SplashBox(modifier: Modifier = Modifier) {
+    var mnemonic = ""
+    var privateKey = ""
+    var publicKey = ""
+    var address = ""
+
     Column(modifier = modifier.padding(10.dp)) {
         Box(modifier = modifier
-            .background(Color.LightGray)
+            .background(Color(0xFF66BB6A))
             .padding(10.dp)
             .fillMaxWidth()
             .height((200.dp))) {
@@ -116,7 +137,7 @@ fun SplashBox(modifier: Modifier = Modifier) {
                     .height(40.dp)
                 ) {
                     Text(
-                        text = "Wallet",
+                        text = "Wallet Info",
                         modifier = modifier.fillMaxWidth(),
                         style = TextStyle(fontSize = 22.sp),
                         textAlign = TextAlign.Center,
@@ -128,6 +149,34 @@ fun SplashBox(modifier: Modifier = Modifier) {
 
                     }) {
                     Text("Generate Wallet", textAlign = TextAlign.Center)
+                }
+                Column (
+                    modifier = modifier.align(Alignment.Start),
+                ) {
+                    Text(
+                        text = "Wallet Mnemonic: ${mnemonic}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Wallet Private Key: ${privateKey}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Wallet Address: ${address}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Wallet Public Key: ${publicKey}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
@@ -141,7 +190,8 @@ data class SplashUiState(
 )
 
 class SplashViewModel : ViewModel() {
-    fun updateAlchemyKey(text: String) {
+    fun updateAlchemyKey(text: String, sharedPrefs: SharedPreferences) {
+        sharedPrefs.edit().putString("Alchemy API Key", text).apply()
     }
 
     /// 1.check Network Connecting
