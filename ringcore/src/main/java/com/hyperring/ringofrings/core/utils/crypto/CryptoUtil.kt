@@ -39,12 +39,12 @@ class CryptoUtil {
         }
 
         fun createWallet(): RingCryptoResponse? {
-            var crypto: RingCryptoResponse? = RingCryptoResponse()
+            val crypto: RingCryptoResponse = RingCryptoResponse()
             try {
                 // 1. gen mnemonic
                 val mnemonic = generateMnemonic()
                 print("Generated Mnemonic: $mnemonic")
-                crypto?.setMnemonic(mnemonic)
+                crypto.setMnemonic(mnemonic)
                 // 2. gen seed
                 val seed = MnemonicUtils.generateSeed(mnemonic, null)
                 print("Seed: " + Numeric.toHexString(seed))
@@ -55,10 +55,12 @@ class CryptoUtil {
                 // 4. Create keys
                 val privateKey = keyPair.privateKeyBytes33
                 val publicKey = keyPair.publicKeyPoint.getEncoded(true)
+                val address = keyPair.publicKeyPoint.getEncoded(true)
                 print("Private Key: " + Numeric.toHexString(privateKey))
                 print("Public Key: " + Numeric.toHexString(publicKey))
-                crypto?.setPrivateKey(Numeric.toHexString(privateKey))
-                crypto?.setPublicKey(Numeric.toHexString(publicKey))
+                crypto.setPrivateKey(Numeric.toHexString(privateKey))
+                crypto.setPublicKey(Numeric.toHexString(publicKey))
+                crypto.setAddress(Numeric.toHexString(address))
 
 //                // 5. todo -> Check this part / Using Tink, verify
 //                val signer = Ed25519Sign(privateKey)
@@ -107,6 +109,10 @@ class CryptoUtil {
             } catch (e: Exception) {
                 return null
             }
+        }
+
+        fun setWalletData(sharedPrefs: EncryptedSharedPreferences?, data: RingCryptoResponse?) {
+
         }
     }
 }

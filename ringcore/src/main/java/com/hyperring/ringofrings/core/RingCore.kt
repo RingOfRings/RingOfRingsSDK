@@ -9,6 +9,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
+import org.web3j.crypto.WalletUtils
 
 class RingCore {
     companion object {
@@ -51,12 +52,12 @@ class RingCore {
             initSharedPrefs(context)
 
         // Check Network ???
-        val isNetworkAvailable = NetworkUtil.isNetworkAvailable(context)
-        if(!isNetworkAvailable) {
-            showToast(context, "Network Error.")
-            return null
-        }
-        return CryptoUtil.createWallet()
+            val isNetworkAvailable = NetworkUtil.isNetworkAvailable(context)
+            if(!isNetworkAvailable) {
+                showToast(context, "Network Error.")
+                return null
+            }
+            return CryptoUtil.createWallet()
         }
 
         /**
@@ -66,12 +67,12 @@ class RingCore {
 
         }
 
-        fun getWalletData() {
-
+        fun getWalletData(): RingCryptoResponse? {
+            return CryptoUtil.getWallet(sharedPrefs)
         }
 
-        fun setWalletData() {
-
+        fun setWalletData(data: RingCryptoResponse?) {
+            CryptoUtil.setWalletData(sharedPrefs, data)
         }
 
         fun setWalletDataToRing() {
