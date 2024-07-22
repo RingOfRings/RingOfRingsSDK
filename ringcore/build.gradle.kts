@@ -44,6 +44,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.hyperring.core)
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
     implementation("org.web3j:core:4.8.9-android")
     implementation("com.google.crypto.tink:tink-android:1.6.1")

@@ -1,5 +1,8 @@
 package com.hyperring.ringofrings
+import android.app.Activity
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -36,6 +39,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.RingCore
+import com.hyperring.ringofrings.core.utils.hyperring_nfc.HyperRingUtil
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
 import com.hyperring.sdk.core.nfc.NFCStatus
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -200,10 +204,25 @@ class SplashViewModel : ViewModel() {
     /// if 1.2.3 exist. move to MainActivity
     /// else if 1 is false. finish app and showNetworkIssue Error
     /// else if 2 or 3 is false. move to InputActivity
-    fun checkStatus(splashActivity: SplashActivity) {
-        var isNetworkConnected: Boolean = RingCore.isNetworkAvailable(splashActivity)
-        var hasAlchemyKey: Boolean = RingCore.checkHasAlchemyKey(splashActivity)
-        var hasWallet: Boolean = RingCore.hasWallet(splashActivity)
+    fun checkStatus(activity: Activity) {
+        HyperRingUtil.initNFCStatus(activity).let {
+            if(HyperRingUtil.nfcStatus == NFCStatus.NFC_ENABLED) {
+                var isNetworkConnected: Boolean = RingCore.isNetworkAvailable(activity)
+                var hasAlchemyKey: Boolean = RingCore.checkHasAlchemyKey(activity)
+                var hasWallet: Boolean = RingCore.hasWallet(activity)
+                if(isNetworkConnected && hasAlchemyKey && hasWallet) {
+                    val intent: Intent = Intent(
+                        activity,
+                        MainActivity::class.java
+                    )
+                    activity.startActivity(intent)
+                }
+            } else {
+                showToast(activity, "NFC is not enabled.")
+                activity.finish()
+            }
+
+        }
     }
 
     private val _uiState = MutableStateFlow(SplashUiState())
