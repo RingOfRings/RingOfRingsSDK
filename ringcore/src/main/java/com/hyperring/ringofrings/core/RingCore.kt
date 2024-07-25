@@ -9,7 +9,8 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
-import org.web3j.crypto.WalletUtils
+import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
+import com.hyperring.sdk.core.nfc.HyperRingTag
 
 class RingCore {
     companion object {
@@ -78,21 +79,20 @@ class RingCore {
         fun setWalletDataToRing() {
 
         }
-
-        fun startPollingRingWalletData() {
-
+        fun startPollingRingWalletData(context: Context, onDiscovered: (tag: HyperRingTag) -> HyperRingTag) {
+            NFCUtil.startPolling(context, onDiscovered)
         }
 
-        fun stopPollingRingWalletData() {
-
+        fun stopPollingRingWalletData(context: Context) {
+            NFCUtil.stopPolling(context)
         }
 
-        fun setAlchemyAPIKey() {
-
+        fun setAlchemyAPIKey(key: String?) {
+            sharedPrefs?.edit()?.putString("alchemy_key", key)?.apply()
         }
 
-        fun setTokenImport() {
-
+        fun setTokenImport(key: String?) {
+            sharedPrefs?.edit()?.putString("alchemy_key", key)?.apply()
         }
 
         fun getMyTokens() {

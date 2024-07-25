@@ -16,14 +16,16 @@ class HyperRingUtil {
         var nfcStatus: NFCStatus = NFCStatus.NFC_UNSUPPORTED
         fun initNFCStatus(context: Context) {
             // init HyperRingNFC
-            HyperRingNFC.initializeHyperRingNFC(context).let {
-                nfcStatus = HyperRingNFC.getNFCStatus()
+            if(nfcStatus == NFCStatus.NFC_UNSUPPORTED) {
+                HyperRingNFC.initializeHyperRingNFC(context).let {
+                    nfcStatus = HyperRingNFC.getNFCStatus()
+            }
         }
     }
 
-    fun startPolling(context: Context) {
+    fun startPolling(context: Context, onDiscovered: (tag: HyperRingTag) -> HyperRingTag) {
         HyperRingNFC.startNFCTagPolling(
-            context as Activity, onDiscovered = :: onDiscovered).let {
+            context as Activity, onDiscovered = onDiscovered).let {
             isPolling = HyperRingNFC.isPolling
         }
     }
@@ -34,16 +36,16 @@ class HyperRingUtil {
         }
     }
 
-    private fun onDiscovered(hyperRingTag: HyperRingTag) : HyperRingTag {
-        if(isReadMode) {
-            if(hyperRingTag.isHyperRingTag()) {
-                Log.d("HyperRingUtil", "hyperRingTag.data: ${hyperRingTag.data}")
-                val readTag: HyperRingTag? = HyperRingNFC.read(null, hyperRingTag)
-                if(readTag != null) {
-                    Log.d("HyperRingUtil", "[read]${hyperRingTag.id}")
-                }
-            }
-        }
+//    private fun onDiscovered(hyperRingTag: HyperRingTag) : HyperRingTag {
+//        if(isReadMode) {
+//            if(hyperRingTag.isHyperRingTag()) {
+//                Log.d("HyperRingUtil", "hyperRingTag.data: ${hyperRingTag.data}")
+//                val readTag: HyperRingTag? = HyperRingNFC.read(null, hyperRingTag)
+//                if(readTag != null) {
+//                    Log.d("HyperRingUtil", "[read]${hyperRingTag.id}")
+//                }
+//            }
+//        }
 //        if(_uiState.value.isWriteMode) {
 //            /// Writing Data to Any HyperRing NFC TAG
 //            val isWrite = HyperRingNFC.write(uiState.value.targetWriteId, hyperRingTag,
@@ -74,7 +76,7 @@ class HyperRingUtil {
 //                }
 //            }
 //        }
-            return hyperRingTag
-        }
+//            return hyperRingTag
+//        }
     }
 }

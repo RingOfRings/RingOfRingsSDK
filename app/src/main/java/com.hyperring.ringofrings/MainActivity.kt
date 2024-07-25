@@ -100,26 +100,12 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column {
-                        TextEditBox(viewModel = mainViewModel)
                         MFABox()
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-fun TextEditBox(modifier: Modifier = Modifier, viewModel: MainViewModel) {
-    var text by remember { mutableStateOf("0x81Ff4cac5Ad0e8E4b7D4D05bc22B4DdcB87599A3") }
-    OutlinedTextField(
-        value = text,
-        onValueChange = {
-            text = it
-            viewModel.updateTagId(text)
-        },
-        label = { Text("Write NFT ID") }
-    )
 }
 
 @Composable
@@ -139,7 +125,7 @@ fun MFABox(modifier: Modifier = Modifier) {
                     .height(40.dp)
                 ) {
                     Text(
-                        text = "Wallet",
+                        text = "MainActivity",
                         modifier = modifier.fillMaxWidth(),
                         style = TextStyle(fontSize = 22.sp),
                         textAlign = TextAlign.Center,
@@ -150,7 +136,7 @@ fun MFABox(modifier: Modifier = Modifier) {
                     onClick = {
 
                     }) {
-                    Text("Generate Wallet", textAlign = TextAlign.Center)
+                    Text("Write Wallet Data", textAlign = TextAlign.Center)
                 }
             }
         }

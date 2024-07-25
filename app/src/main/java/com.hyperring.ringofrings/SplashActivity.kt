@@ -210,7 +210,8 @@ class SplashViewModel : ViewModel() {
                 var isNetworkConnected: Boolean = RingCore.isNetworkAvailable(activity)
                 var hasAlchemyKey: Boolean = RingCore.checkHasAlchemyKey(activity)
                 var hasWallet: Boolean = RingCore.hasWallet(activity)
-                if(isNetworkConnected && hasAlchemyKey && hasWallet) {
+//                if(isNetworkConnected && hasAlchemyKey && hasWallet) {
+                if(true) {
                     val intent: Intent = Intent(
                         activity,
                         MainActivity::class.java
