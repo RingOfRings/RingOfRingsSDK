@@ -44,6 +44,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.data.mfa.AESMFAChallengeData
 import com.hyperring.ringofrings.data.mfa.JWTMFAChallengeData
 import com.hyperring.ringofrings.data.nfc.AESHRData
@@ -233,7 +234,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun startPolling(context: Context) {
-        HyperRingNFC.startNFCTagPolling(
+        RingCore.startPollingRingWalletData(
             context as Activity, onDiscovered = :: onDiscovered).let {
             _uiState.update { currentState ->
                 currentState.copy(
@@ -244,7 +245,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun stopPolling(context: Context) {
-        HyperRingNFC.stopNFCTagPolling(context as Activity).let {
+        RingCore.stopPollingRingWalletData(context as Activity).let {
             _uiState.update { currentState ->
                 currentState.copy(
                     isPolling = HyperRingNFC.isPolling

@@ -9,8 +9,17 @@ class RingCryptoResponse {
     private var address: String? = null
     private var privateKey: String? = null
     private var publicKey: String? = null
-    fun setMnemonic(mnemonic: String?) {
-        this.mnemonic = mnemonic
+    fun setMnemonic(mnemonic: List<String>) {
+        var mnemonicStr = ""
+        mnemonic.forEach { mnemonicStr += it }
+        this.mnemonic = mnemonicStr
+    }
+
+    fun getMnemonic() : List<String>? {
+        try {
+            return mnemonic?.split(" ");
+        } catch (_: Exception) { }
+        return null
     }
 
     fun setPrivateKey(privateKey: String?) {
