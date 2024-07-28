@@ -41,9 +41,13 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
-//    kotlinOptions {
-//        jvmTarget = "17"
-//    }
+
+    packaging {
+        resources.excludes.apply {
+            resources.excludes.add("META-INF/versions/**")
+            resources.excludes.add("META-INF/**")
+        }
+    }
 }
 
 dependencies {
@@ -72,4 +76,6 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }

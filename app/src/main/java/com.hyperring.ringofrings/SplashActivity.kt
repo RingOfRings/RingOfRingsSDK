@@ -2,7 +2,6 @@ package com.hyperring.ringofrings
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -184,6 +183,56 @@ fun SplashBox(modifier: Modifier = Modifier) {
                 }
             }
         }
+        Box(modifier = modifier
+            .background(Color(0xFF33BB6A))
+            .padding(10.dp)
+            .fillMaxWidth()
+            .height((200.dp))) {
+            val context = LocalContext.current
+            val activity = context as? Activity
+
+            Column(
+                modifier = modifier
+                    .align(Alignment.TopCenter)
+            ) {
+                FilledTonalButton(
+                    modifier = modifier.fillMaxWidth(),
+                    onClick = {
+                        val intent: Intent = Intent(activity, CryptoActivity::class.java)
+                        activity?.startActivity(intent)
+                    }) {
+                    Text("Show list", textAlign = TextAlign.Center)
+                }
+                Column (
+                    modifier = modifier.align(Alignment.Start),
+                ) {
+                    Text(
+                        text = "Wallet Mnemonic: ${mnemonic}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Wallet Private Key: ${privateKey}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Wallet Address: ${address}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Wallet Public Key: ${publicKey}",
+                        modifier = modifier.fillMaxWidth(),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -208,11 +257,14 @@ class SplashViewModel : ViewModel() {
         HyperRingUtil.initNFCStatus(activity).let {
             if(HyperRingUtil.nfcStatus == NFCStatus.NFC_ENABLED) {
                 var isNetworkConnected: Boolean = RingCore.isNetworkAvailable(activity)
-                var hasAlchemyKey: Boolean = RingCore.checkHasAlchemyKey(activity)
                 var hasWallet: Boolean = RingCore.hasWallet(activity)
-//                if(isNetworkConnected && hasAlchemyKey && hasWallet) {
-                if(true) {
-                    val intent: Intent = Intent(
+                if(!isNetworkConnected) {
+                    showToast(activity, "Network Not Connected")
+                    activity.finish()
+                }
+
+                if(hasWallet) {
+                    val intent= Intent(
                         activity,
                         MainActivity::class.java
                     )

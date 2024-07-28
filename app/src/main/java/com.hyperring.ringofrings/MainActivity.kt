@@ -1,7 +1,7 @@
 package com.hyperring.ringofrings
 import android.app.Activity
-import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -12,25 +12,15 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,15 +35,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.hyperring.ringofrings.core.RingCore
-import com.hyperring.ringofrings.data.mfa.AESMFAChallengeData
-import com.hyperring.ringofrings.data.mfa.JWTMFAChallengeData
 import com.hyperring.ringofrings.data.nfc.AESHRData
 import com.hyperring.ringofrings.data.nfc.AESWalletHRData
 import com.hyperring.ringofrings.data.nfc.JWTHRData
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
-import com.hyperring.sdk.core.data.HyperRingMFAChallengeInterface
-import com.hyperring.sdk.core.data.MFAChallengeResponse
-import com.hyperring.sdk.core.mfa.HyperRingMFA
 import com.hyperring.sdk.core.nfc.HyperRingNFC
 import com.hyperring.sdk.core.nfc.HyperRingTag
 import com.hyperring.sdk.core.nfc.NFCStatus
@@ -111,6 +96,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MFABox(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+
     Column(modifier = modifier.padding(10.dp)) {
         Box(modifier = modifier
             .background(Color.LightGray)
@@ -131,6 +119,14 @@ fun MFABox(modifier: Modifier = Modifier) {
                         style = TextStyle(fontSize = 22.sp),
                         textAlign = TextAlign.Center,
                     )
+                }
+                FilledTonalButton(
+                    modifier = modifier.fillMaxWidth(),
+                    onClick = {
+                        val intent: Intent = Intent(activity, CryptoActivity::class.java)
+                        activity?.startActivity(intent)
+                    }) {
+                    Text("Show List", textAlign = TextAlign.Center)
                 }
                 FilledTonalButton(
                     modifier = modifier.fillMaxWidth(),

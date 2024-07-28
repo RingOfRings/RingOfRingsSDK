@@ -15,7 +15,9 @@ import com.hyperring.sdk.core.nfc.HyperRingTag
 class RingCore {
     companion object {
         private const val FILE_NAME = "ring_of_rings"
+        private const val DEFAULT_ALCHEMY_KEY = "AXym-2aqo9_9icvXfUeVE_GNQj7-hdLj"
         var sharedPrefs : EncryptedSharedPreferences? = null
+
         fun isNetworkAvailable(context: Context): Boolean {
             initSharedPrefs(context)
             return NetworkUtil.isNetworkAvailable(context)
@@ -23,7 +25,7 @@ class RingCore {
 
         fun checkHasAlchemyKey(context: Context): Boolean {
             initSharedPrefs(context).let {
-                var alchemyKey: String? = sharedPrefs?.getString("alchemy_key", null)
+                var alchemyKey: String? = sharedPrefs?.getString("alchemy_key", DEFAULT_ALCHEMY_KEY)
                 return alchemyKey != null
             }
         }

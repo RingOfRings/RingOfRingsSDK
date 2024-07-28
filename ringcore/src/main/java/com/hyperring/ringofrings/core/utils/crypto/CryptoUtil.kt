@@ -1,9 +1,5 @@
 package com.hyperring.ringofrings.core.utils.crypto
-import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
-import com.google.crypto.tink.subtle.Ed25519Sign
-import com.google.crypto.tink.subtle.Ed25519Verify
-import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import org.bitcoinj.crypto.MnemonicCode
 import org.web3j.crypto.Bip32ECKeyPair

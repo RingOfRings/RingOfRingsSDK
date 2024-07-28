@@ -4,12 +4,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 
-class AlchemyApi(apiKey: String?) {
+class AlchemyApi(baseUrl: String = SEPORIA_BASE_URL) {
     val service: AlchemyService
 
     init {
         val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -17,6 +17,7 @@ class AlchemyApi(apiKey: String?) {
     }
 
     companion object {
-        private const val BASE_URL = "https://eth-mainnet.g.alchemy.com"
+        private const val SEPORIA_BASE_URL = "https://eth-sepolia.g.alchemy.com"
+//        https://eth-sepolia.g.alchemy.com/v2/wcdDFTfh6RhkUf14WB61TTU8tPt_ww-r
     }
 }
