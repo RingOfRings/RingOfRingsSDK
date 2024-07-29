@@ -1,5 +1,8 @@
 package com.hyperring.ringofrings.core.utils.crypto
+import android.content.Context
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
+import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import org.bitcoinj.crypto.MnemonicCode
 import org.web3j.crypto.Bip32ECKeyPair
@@ -43,16 +46,16 @@ class CryptoUtil {
             val privateKeyPair = Bip32ECKeyPair.deriveKeyPair(keyPair, path)
             return Credentials.create(privateKeyPair)
         }
-        fun createWallet(): RingCryptoResponse? {
+        fun createWallet(context: Context): RingCryptoResponse? {
             val crypto: RingCryptoResponse = RingCryptoResponse()
             try {
                 // 1. gen mnemonic
                 val mnemonic = generateMnemonic()
-                print("Generated Mnemonic: $mnemonic")
+                Log.d("createWallet", "Generated Mnemonic: $mnemonic")
                 crypto.setMnemonic(mnemonic)
                 // 2. gen seed
                 val seed = mnemonicToSeed(mnemonic)
-                print("Seed: " + Numeric.toHexString(seed))
+                Log.d("createWallet", "Seed: " + Numeric.toHexString(seed))
 
                 // 3. BIP32 EC gen key pair
                 val keyPair = generateKeyPairFromSeed(seed)
@@ -62,11 +65,10 @@ class CryptoUtil {
                 val privateKey = credentials.ecKeyPair.privateKey.toString(16)
                 val publicKey = credentials.ecKeyPair.publicKey.toString(16)
                 val address = credentials.address
-//                print("Private Key: " + Numeric.toHexString(privateKey))
-//                print("Public Key: " + Numeric.toHexString(publicKey))
                 crypto.setPrivateKey(privateKey)
                 crypto.setPublicKey(publicKey)
                 crypto.setAddress(address)
+                setWalletData(context, crypto)
                 return crypto
             } catch (e: CipherException) {
                 e.printStackTrace()
@@ -78,9 +80,9 @@ class CryptoUtil {
             return null
         }
 
-        fun hasWallet(sharedPrefs: EncryptedSharedPreferences?): Boolean {
+        fun hasWallet(): Boolean {
              try {
-                 if(getWallet(sharedPrefs) != null) {
+                 if(getWallet() != null) {
                      return true
                  }
              } catch (e: Exception) {
@@ -89,25 +91,31 @@ class CryptoUtil {
             return false
         }
 
-        fun getWallet(sharedPrefs: EncryptedSharedPreferences?): RingCryptoResponse? {
+        fun getWallet(): RingCryptoResponse? {
             try {
                 var crypto : RingCryptoResponse? = RingCryptoResponse()
-                val mnemonic = sharedPrefs?.getString(MNEMONIC, null)
-                val publicKey = sharedPrefs?.getString(PUBLIC_KEY, null)
-                val privateKey = sharedPrefs?.getString(PRIVATE_KEY, null)
-                val address = sharedPrefs?.getString(ADDRESS, null)
+                val mnemonic = RingCore.sharedPrefs?.getString(MNEMONIC, null)
+                val publicKey = RingCore.sharedPrefs?.getString(PUBLIC_KEY, null)
+                val privateKey = RingCore.sharedPrefs?.getString(PRIVATE_KEY, null)
+                val address = RingCore.sharedPrefs?.getString(ADDRESS, null)
                 crypto?.setMnemonic(mnemonic!!.split(""))
                 crypto?.setPublicKey(publicKey)
                 crypto?.setPrivateKey(privateKey)
                 crypto?.setAddress(address)
                 return crypto
             } catch (e: Exception) {
+                Log.d("getWallet", "$e")
                 return null
             }
         }
 
-        fun setWalletData(sharedPrefs: EncryptedSharedPreferences?, data: RingCryptoResponse?) {
-
+        fun setWalletData(context: Context, data: RingCryptoResponse?) {
+            RingCore.initSharedPrefs(context).let {
+                    RingCore.sharedPrefs!!.edit().putString(MNEMONIC, data?.getMnemonic()).apply()
+                    RingCore.sharedPrefs!!.edit().putString(PUBLIC_KEY, data?.getPublicKey()).apply()
+                    RingCore.sharedPrefs!!.edit().putString(PRIVATE_KEY, data?.getPrivateKey()).apply()
+                    RingCore.sharedPrefs!!.edit().putString(ADDRESS, data?.getAddress()).apply()
+                }
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.hyperring.ringofrings.core.utils.crypto.data
 
+import android.util.Log
+
 /**
  * Crypto Data for Ring of rings
  */
@@ -11,26 +13,51 @@ class RingCryptoResponse {
     private var publicKey: String? = null
     fun setMnemonic(mnemonic: List<String>) {
         var mnemonicStr = ""
-        mnemonic.forEach { mnemonicStr += it }
+        mnemonic.forEach { mnemonicStr += " $it" }
         this.mnemonic = mnemonicStr
+        Log.d("RingCryptoResponse", "mnemonic: ${this.mnemonic}")
     }
 
-    fun getMnemonic() : List<String>? {
+    fun getMnemonic() : String? {
         try {
-            return mnemonic?.split(" ");
+            return mnemonic
+        } catch (_: Exception) { }
+        return null
+    }
+
+    fun getPublicKey(): String? {
+        try {
+            return publicKey
+        } catch (_: Exception) { }
+        return null
+    }
+
+    fun getPrivateKey(): String? {
+        try {
+            return privateKey
+        } catch (_: Exception) { }
+        return null
+    }
+
+    fun getAddress(): String? {
+        try {
+            return address
         } catch (_: Exception) { }
         return null
     }
 
     fun setPrivateKey(privateKey: String?) {
         this.privateKey = privateKey
+        Log.d("RingCryptoResponse", "privateKey: $privateKey")
     }
 
     fun setPublicKey(publicKey: String?) {
         this.publicKey = publicKey
+        Log.d("RingCryptoResponse", "publicKey: $publicKey")
     }
 
     fun setAddress(address: String?) {
         this.address = address
+        Log.d("RingCryptoResponse", "setAddress: ${address}")
     }
 }

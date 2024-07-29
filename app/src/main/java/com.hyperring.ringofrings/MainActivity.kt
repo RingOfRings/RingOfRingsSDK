@@ -98,7 +98,6 @@ class MainActivity : ComponentActivity() {
 fun MFABox(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val activity = context as? Activity
-
     Column(modifier = modifier.padding(10.dp)) {
         Box(modifier = modifier
             .background(Color.LightGray)
