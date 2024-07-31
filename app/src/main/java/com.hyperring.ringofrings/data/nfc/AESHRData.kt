@@ -61,6 +61,20 @@ class AESHRData(tag: Tag?) : HyperRingData(tag) {
             demoNFCData.encrypt("{\\\"name\\\":\\\"$name\\\"}")
             return demoNFCData
         }
+
+        fun decrypt(source: String?): String {
+            Log.d("DemoData", "decrypt(source: $source) [${source?.length}]")
+            if(source == null) {
+                throw DecryptFailure()
+            }
+            var decodedByte: ByteArray = Base64.decode(source, Base64.DEFAULT)
+            val iv = IvParameterSpec(DEMO_KEY.toByteArray())
+            val keySpec = SecretKeySpec(DEMO_KEY.toByteArray(), "AES")
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, iv)
+            val output = cipher.doFinal(decodedByte)
+            return String(output)
+        }
     }
 
     class DecryptFailure : Exception("Decrypt Exception")

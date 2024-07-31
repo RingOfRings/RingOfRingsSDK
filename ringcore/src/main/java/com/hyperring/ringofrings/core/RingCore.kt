@@ -1,6 +1,5 @@
 package com.hyperring.ringofrings.core
 import NetworkUtil
-import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Handler
@@ -12,27 +11,36 @@ import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
+import com.hyperring.sdk.core.nfc.HyperRingData
 import com.hyperring.sdk.core.nfc.HyperRingNFC
 import com.hyperring.sdk.core.nfc.HyperRingTag
 
 class RingCore {
     companion object {
         private const val FILE_NAME = "ring_of_rings"
-        private const val DEFAULT_ALCHEMY_KEY = "AXym-2aqo9_9icvXfUeVE_GNQj7-hdLj"
+        const val DEFAULT_ALCHEMY_KEY = "AXym-2aqo9_9icvXfUeVE_GNQj7-hdLj"
         var sharedPrefs : SharedPreferences? = null
 
+        /**
+         * Check network connectivity
+         */
         fun isNetworkAvailable(context: Context): Boolean {
-            initSharedPrefs(context)
             return NetworkUtil.isNetworkAvailable(context)
         }
 
-        fun checkHasAlchemyKey(context: Context): Boolean {
+        /**
+         * Get alchemy key from local db
+         */
+        fun getAlchemyKey(context: Context): String? {
             initSharedPrefs(context).let {
                 var alchemyKey: String? = sharedPrefs?.getString("alchemy_key", DEFAULT_ALCHEMY_KEY)
-                return alchemyKey != null
+                return alchemyKey
             }
         }
 
+        /**
+         * Init local db (SharedPreferences)
+         */
         fun initSharedPrefs(context: Context) {
             if(sharedPrefs == null) {
                 val masterKeyAlias = MasterKey
@@ -50,14 +58,19 @@ class RingCore {
             }
         }
 
-        fun hasWallet(context: Context): Boolean {
+        /**
+         * Check has wallet
+         */
+        fun hasWallet(): Boolean {
             return CryptoUtil.hasWallet()
         }
 
+        /**
+         * Create wallet
+         */
         fun createWallet(context: Context): RingCryptoResponse? {
             initSharedPrefs(context)
 
-        // Check Network ???
             val isNetworkAvailable = NetworkUtil.isNetworkAvailable(context)
             if(!isNetworkAvailable) {
                 showToast(context, "Network Error.")
@@ -75,15 +88,21 @@ class RingCore {
 
         }
 
+        /**
+         * Get wallet data from local db
+         */
         fun getWalletData(): RingCryptoResponse? {
             return CryptoUtil.getWallet()
         }
 
+        /**
+         * Set wallet data to local db
+         */
         fun setWalletData(context: Context, data: RingCryptoResponse?) {
             CryptoUtil.setWalletData(context, data)
         }
 
-        fun setWalletDataToRing(context: Context){
+        fun setWalletDataToRing(context: Context, hrData: HyperRingData){
             val walletData = getWalletData()
             if(walletData == null) {
                 showToast(context, "No Wallet Data")
@@ -91,22 +110,36 @@ class RingCore {
             }
             Log.d("RingCore", "${walletData.getMnemonic()}")
             fun onDiscovered(tag: HyperRingTag): HyperRingTag {
-                Log.d("onDiscovered", "$tag")
+                Log.d("onDiscovered", "$tag / ${tag.data} / ${tag.data.data}")
                 showToast(context, "success")
-                NFCUtil.stopPolling(context)
+//                NFCUtil.stopPolling(context)
+//                val tagId = 10L
+                val tagId = null
+                HyperRingNFC.write(tagId, tag, hrData)
                 return tag
             }
+            NFCUtil.stopPolling(context)
             NFCUtil.startPolling(context, onDiscovered = ::onDiscovered)
         }
 
+        /**
+         * Start polling Wallet Data. If get Data. listening event at onDiscovered
+         */
         fun startPollingRingWalletData(context: Context, onDiscovered: (tag: HyperRingTag) -> HyperRingTag) {
-            NFCUtil.startPolling(context, onDiscovered)
+            NFCUtil.stopPolling(context)
+            NFCUtil.startPolling(context, onDiscovered = onDiscovered)
         }
 
+        /**
+         * Stop polling NFC
+         */
         fun stopPollingRingWalletData(context: Context) {
             NFCUtil.stopPolling(context)
         }
 
+        /**
+         * Set Alchemy API Key in Local Database
+         */
         fun setAlchemyAPIKey(key: String?) {
             sharedPrefs?.edit()?.putString("alchemy_key", key)?.apply()
         }

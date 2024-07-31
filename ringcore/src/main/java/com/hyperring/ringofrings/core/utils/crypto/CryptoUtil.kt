@@ -1,14 +1,12 @@
 package com.hyperring.ringofrings.core.utils.crypto
 import android.content.Context
 import android.util.Log
-import androidx.security.crypto.EncryptedSharedPreferences
 import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import org.bitcoinj.crypto.MnemonicCode
 import org.web3j.crypto.Bip32ECKeyPair
 import org.web3j.crypto.CipherException
 import org.web3j.crypto.Credentials
-import org.web3j.crypto.MnemonicUtils
 import org.web3j.utils.Numeric
 import java.io.IOException
 import java.security.GeneralSecurityException
@@ -51,7 +49,6 @@ class CryptoUtil {
             try {
                 // 1. gen mnemonic
                 val mnemonic = generateMnemonic()
-                Log.d("createWallet", "Generated Mnemonic: $mnemonic")
                 crypto.setMnemonic(mnemonic)
                 // 2. gen seed
                 val seed = mnemonicToSeed(mnemonic)
@@ -98,13 +95,15 @@ class CryptoUtil {
                 val publicKey = RingCore.sharedPrefs?.getString(PUBLIC_KEY, null)
                 val privateKey = RingCore.sharedPrefs?.getString(PRIVATE_KEY, null)
                 val address = RingCore.sharedPrefs?.getString(ADDRESS, null)
-                crypto?.setMnemonic(mnemonic!!.split(""))
+                Log.d("getWallet", "mnemonic: ${mnemonic}")
+                crypto?.setMnemonic(mnemonic!!.split(" "))
                 crypto?.setPublicKey(publicKey)
                 crypto?.setPrivateKey(privateKey)
                 crypto?.setAddress(address)
+                Log.d("getWallet", "$crypto")
                 return crypto
             } catch (e: Exception) {
-                Log.d("getWallet", "$e")
+                Log.e("getWallet", "$e")
                 return null
             }
         }

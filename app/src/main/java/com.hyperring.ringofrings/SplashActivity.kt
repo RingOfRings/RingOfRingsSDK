@@ -1,10 +1,9 @@
 package com.hyperring.ringofrings
 import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -31,10 +31,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -48,12 +50,16 @@ import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalance
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
+import com.hyperring.ringofrings.data.nfc.AESHRData
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
+import com.hyperring.sdk.core.nfc.HyperRingTag
 import com.hyperring.sdk.core.nfc.NFCStatus
+import io.jsonwebtoken.Jwts
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.crypto.SecretKey
 
 
 /**
@@ -77,8 +83,12 @@ class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         splashActivity = this
-        RingCore.initSharedPrefs(this@SplashActivity)
-        splashViewModel = ViewModelProvider(this)[SplashViewModel::class.java]
+        RingCore.initSharedPrefs(this@SplashActivity).let {
+            splashViewModel = ViewModelProvider(this)[SplashViewModel::class.java]
+            splashViewModel.initAlchemyKey(this)
+        }
+
+
         lifecycleScope.launch {
             // If application is started, init nfc status
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -90,7 +100,9 @@ class SplashActivity : ComponentActivity() {
             RingOfRingsTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column {
@@ -105,27 +117,43 @@ class SplashActivity : ComponentActivity() {
 
 @Composable
 fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
-    val masterKeyAlias = MasterKey
-        .Builder(LocalContext.current, MasterKey.DEFAULT_MASTER_KEY_ALIAS)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
-
-    val sharedPrefs = EncryptedSharedPreferences.create(
-        LocalContext.current,
-        "Ring_of_rings_demo",
-        masterKeyAlias,
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    )
-    var text by remember { mutableStateOf(sharedPrefs.getString("Alchemy API Key", "")) }
-    OutlinedTextField(
-        value = text?:"",
-        onValueChange = {
-            text = it
-            viewModel.updateAlchemyKey(text?:"", sharedPrefs)
-        },
-        label = { Text("Alchemy API Key") }
-    )
+    val alchemyKey = viewModel.alchemyKey.collectAsState()
+    var text by remember { mutableStateOf(RingCore.sharedPrefs?.getString("alchemy_key", alchemyKey.value?:"")) }
+    return Row() {
+        Box(modifier = Modifier
+            .weight(1f)
+            .height(65.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            OutlinedTextField(
+                value = text?:"",
+                shape = RoundedCornerShape(10.dp),
+                textStyle = TextStyle(fontSize = 13.sp),
+                onValueChange = {
+                    text = it
+                    viewModel.updateAlchemyKey(text?:"")
+                },
+                label = { Text("Alchemy API Key") }
+            )
+        }
+        Box(modifier = Modifier
+            .height(70.dp)
+            .padding(start = 5.dp)
+            .width(90.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            FilledTonalButton(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                onClick = {
+                    viewModel.updateAlchemyKey(RingCore.DEFAULT_ALCHEMY_KEY)
+                    text = RingCore.DEFAULT_ALCHEMY_KEY
+                }) {
+                Text("Reset", textAlign = TextAlign.Center)
+            }
+        }
+    }
 }
 
 @Composable
@@ -135,10 +163,11 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
 
     Column(modifier = modifier.padding(10.dp)) {
         Box(modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
             .background(Color(0xFF66BB6A))
-            .padding(10.dp)
             .fillMaxWidth()
-            .height((200.dp))) {
+            .padding(10.dp)
+            .height((350.dp))) {
             Column(
                 modifier = modifier
                     .align(Alignment.TopCenter)
@@ -157,45 +186,78 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                 FilledTonalButton(
                     modifier = modifier.fillMaxWidth(),
                     onClick = {
-                        generateWallet(context)
+                        viewModel.generateWallet(context)
                     }) {
                     Text("Generate Wallet", textAlign = TextAlign.Center)
                 }
                 Column (
                     modifier = modifier.align(Alignment.Start),
                 ) {
-                    Text(
-                        text = "Wallet Mnemonic: ${wallet.value?.getMnemonic()}",
-                        modifier = modifier.fillMaxWidth(),
-                        style = TextStyle(fontSize = 14.sp),
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        text = "Wallet Private Key: ${wallet.value?.getPrivateKey()}",
-                        modifier = modifier.fillMaxWidth(),
-                        style = TextStyle(fontSize = 14.sp),
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        text = "Wallet Address: ${wallet.value?.getAddress()}",
-                        modifier = modifier.fillMaxWidth(),
-                        style = TextStyle(fontSize = 14.sp),
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        text = "Wallet Public Key: ${wallet.value?.getPublicKey()}",
-                        modifier = modifier.fillMaxWidth(),
-                        style = TextStyle(fontSize = 14.sp),
-                        textAlign = TextAlign.Center,
-                    )
+                    Box(modifier = modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White)
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                        .height((50.dp))) {
+                        Text(
+                            text = "Wallet Mnemonic: ${wallet.value?.getMnemonic()}",
+                            modifier = modifier.fillMaxWidth(),
+                            style = TextStyle(fontSize = 14.sp),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    Box(modifier = modifier.height(5.dp))
+                    Box(modifier = modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White)
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                        .height((50.dp))) {
+                        Text(
+                            text = "Wallet Private Key: ${wallet.value?.getPrivateKey()}",
+                            modifier = modifier.fillMaxWidth(),
+                            style = TextStyle(fontSize = 14.sp),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    Box(modifier = modifier.height(5.dp))
+                    Box(modifier = modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White)
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                        .height((30.dp))) {
+                        Text(
+                            text = "Wallet Address: ${wallet.value?.getAddress()}",
+                            modifier = modifier.fillMaxWidth(),
+                            style = TextStyle(fontSize = 14.sp),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                    Box(modifier = modifier.height(5.dp))
+                    Box(modifier = modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White)
+                        .padding(10.dp)
+                        .fillMaxWidth()
+                        .height((50.dp))) {
+                        Text(
+                            text = "Wallet Public Key: ${wallet.value?.getPublicKey()}",
+                            modifier = modifier.fillMaxWidth(),
+                            style = TextStyle(fontSize = 14.sp),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }
+        Box(modifier = modifier.height(10.dp))
         Box(modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
             .background(Color(0xFF33BB6A))
             .padding(10.dp)
             .fillMaxWidth()
-            .height((200.dp))) {
+            .height((100.dp))) {
             val context = LocalContext.current
             val activity = context as? Activity
 
@@ -206,7 +268,9 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                 FilledTonalButton(
                     modifier = modifier.fillMaxWidth(),
                     onClick = {
-                        writeWalletToTag(context)
+//                        writeWalletToTag(context)
+                        val intent: Intent = Intent(activity, CryptoActivity::class.java)
+                        activity?.startActivity(intent)
                     }) {
                     Text("Show list", textAlign = TextAlign.Center)
                 }
@@ -235,7 +299,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         FilledTonalButton(
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
-
+                                readWalletFromTag(context)
                             }) {
                             Text("read Wallet data from Tag", textAlign = TextAlign.Center)
                         }
@@ -246,16 +310,26 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
     }
 }
 
-fun generateWallet(context: Context) {
-    if(RingCore.hasWallet(context)) {
-        showToast(context, "Wallet is exist")
+fun writeWalletToTag(context: Context) {
+    if(RingCore.getWalletData() == null) {
+        showToast(context, "Wallet not exist")
         return
     }
-    RingCore.createWallet(context)
+    val hrData = AESHRData.createData(20L, RingCore.getWalletData()!!.getMnemonic()!!)
+    RingCore.setWalletDataToRing(context, hrData)
 }
 
-fun writeWalletToTag(context: Context) {
-    RingCore.setWalletDataToRing(context)
+fun readWalletFromTag(context: Context) {
+    fun readTag(tag: HyperRingTag): HyperRingTag {
+        Log.d("readTag", "tag: ${tag.isHyperRingTag()}")
+        Log.d("readTag", "tag: ${tag.id}")
+        Log.d("readTag", "tag: ${tag.data.ndefMessageBody()}")
+        Log.d("readTag", "tag: ${tag.data.data}")
+        Log.d("readTag", "decrypt: ${AESHRData.decrypt(tag.data.data)}")
+        showToast(context, "${AESHRData.decrypt(tag.data.data)}")
+        return tag
+    }
+    RingCore.startPollingRingWalletData(context, onDiscovered = ::readTag)
 }
 
 data class SplashUiState(
@@ -265,32 +339,47 @@ data class SplashUiState(
 )
 
 class SplashViewModel : ViewModel() {
-    fun updateAlchemyKey(text: String, sharedPrefs: SharedPreferences) {
-        sharedPrefs.edit().putString("Alchemy API Key", text).apply()
+    private val _uiState = MutableStateFlow(SplashUiState())
+    val uiState: StateFlow<SplashUiState> = _uiState.asStateFlow()
+
+    private val _wallet = MutableStateFlow<RingCryptoResponse?>(null)
+    val wallet: StateFlow<RingCryptoResponse?> = _wallet
+
+    private val _alchemyKey = MutableStateFlow<String?>(null)
+    val alchemyKey: StateFlow<String?> = _alchemyKey
+
+    init {
+        fetchWallet()
     }
 
-    /// 1.check Network Connecting
-    /// 2.check alchemy key
-    /// 3.check Wallet Info
-    /// if 1.2.3 exist. move to MainActivity
-    /// else if 1 is false. finish app and showNetworkIssue Error
-    /// else if 2 or 3 is false. move to InputActivity
+    fun initAlchemyKey(context: Context) {
+        _alchemyKey.value = RingCore.getAlchemyKey(context)
+    }
+
+    fun updateAlchemyKey(text: String) {
+        RingCore.sharedPrefs?.edit()?.putString("alchemy_key", text)?.apply()
+        _alchemyKey.value = text
+    }
+
+    /**
+     * 1.check Network Connecting
+     * 2.init sharedpreferences
+     * 3.check Wallet Info
+     */
     fun checkStatus(activity: Activity) {
         NFCUtil.initNFCStatus(activity).let {
             if(NFCUtil.nfcStatus == NFCStatus.NFC_ENABLED) {
-                var isNetworkConnected: Boolean = RingCore.isNetworkAvailable(activity)
-                var hasWallet: Boolean = RingCore.hasWallet(activity)
+                RingCore.initSharedPrefs(activity)
+
+                val isNetworkConnected: Boolean = RingCore.isNetworkAvailable(activity)
                 if(!isNetworkConnected) {
                     showToast(activity, "Network Not Connected")
                     activity.finish()
                 }
 
-                if(hasWallet) {
-                    val intent= Intent(
-                        activity,
-                        MainActivity::class.java
-                    )
-                    activity.startActivity(intent)
+                val hasWallet: Boolean = RingCore.hasWallet()
+                if(!hasWallet) {
+                    showToast(activity, "Wallet not exist")
                 }
             } else {
                 showToast(activity, "NFC is not enabled.")
@@ -300,17 +389,18 @@ class SplashViewModel : ViewModel() {
         }
     }
 
-    private val _uiState = MutableStateFlow(SplashUiState())
-    val uiState: StateFlow<SplashUiState> = _uiState.asStateFlow()
-
-    private val _wallet = MutableStateFlow<RingCryptoResponse?>(null)
-    val wallet: StateFlow<RingCryptoResponse?> = _wallet
-
-    init {
-        fetchWallet()
-    }
-
     private fun fetchWallet() {
         _wallet.value = RingCore.getWalletData()
+    }
+
+    fun generateWallet(context: Context) : RingCryptoResponse? {
+        if(RingCore.hasWallet()) {
+            showToast(context, "Wallet is exist")
+            return null
+        }
+        RingCore.createWallet(context).let {
+            _wallet.value = it
+            return it
+        }
     }
 }

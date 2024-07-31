@@ -11,9 +11,9 @@ class RingCryptoResponse {
     private var address: String? = null
     private var privateKey: String? = null
     private var publicKey: String? = null
-    fun setMnemonic(mnemonic: List<String>) {
+    fun setMnemonic(mnemonics: List<String>) {
         var mnemonicStr = ""
-        mnemonic.forEach { mnemonicStr += " $it" }
+        mnemonics.forEach { mnemonicStr = mnemonicStr +" $it" }
         this.mnemonic = mnemonicStr
         Log.d("RingCryptoResponse", "mnemonic: ${this.mnemonic}")
     }
