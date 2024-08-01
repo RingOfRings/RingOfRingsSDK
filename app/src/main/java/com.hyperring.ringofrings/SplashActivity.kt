@@ -18,11 +18,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -160,6 +164,7 @@ fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
 fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
     val context = LocalContext.current
     var wallet = viewModel.wallet.collectAsState()
+    var showImportWalletDialog by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.padding(10.dp)) {
         Box(modifier = modifier
@@ -167,7 +172,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
             .background(Color(0xFF66BB6A))
             .fillMaxWidth()
             .padding(10.dp)
-            .height((350.dp))) {
+            .height((380.dp))) {
             Column(
                 modifier = modifier
                     .align(Alignment.TopCenter)
@@ -183,12 +188,47 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         textAlign = TextAlign.Center,
                     )
                 }
-                FilledTonalButton(
-                    modifier = modifier.fillMaxWidth(),
-                    onClick = {
-                        viewModel.generateWallet(context)
-                    }) {
-                    Text("Generate Wallet", textAlign = TextAlign.Center)
+                Row() {
+                    Box(modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = 5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FilledTonalButton(
+                            modifier = modifier.fillMaxWidth(),
+                            onClick = {
+                                viewModel.generateWallet(context)
+                            }) {
+                            Text("Generate Wallet", textAlign = TextAlign.Center)
+                        }
+                    }
+                    Box(modifier = modifier.width(5.dp))
+                    Box(modifier = Modifier
+                        .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FilledTonalButton(
+                            modifier = modifier.fillMaxWidth(),
+                            onClick = {
+                                viewModel.resetWallet(context)
+                            }) {
+                            Text("Reset Wallet", textAlign = TextAlign.Center)
+                        }
+                    }
+                    Box(modifier = modifier.width(5.dp))
+                    Box(modifier = Modifier
+                        .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FilledTonalButton(
+                            modifier = modifier.fillMaxWidth(),
+                            onClick = {
+                                showImportWalletDialog = true
+//                                viewModel.importWallet(context)
+                            }) {
+                            Text("Import Wallet", textAlign = TextAlign.Center)
+                        }
+                    }
                 }
                 Column (
                     modifier = modifier.align(Alignment.Start),
@@ -308,6 +348,76 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
             }
         }
     }
+
+    if (showImportWalletDialog) {
+        WalletImportDialog(onDismiss = {
+            showImportWalletDialog = false
+            viewModel.refreshWallet()
+        })
+    }
+}
+
+@Composable
+fun WalletImportDialog(onDismiss: () -> Unit) {
+    var walletInput by remember { mutableStateOf("35718dbbcfc6e3046b61ae05305f8acdde2dbbf3daa16884c0a1353eb0f8f83a") }
+//    var passwordInput by remember { mutableStateOf("") }
+    var walletAddress by remember { mutableStateOf("") }
+    var showResult by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Import Wallet")
+        },
+        text = {
+            Column {
+                TextField(
+                    value = walletInput,
+                    onValueChange = { walletInput = it },
+                    label = { Text("Mnemonic or Private Key") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+//                TextField(
+//                    value = passwordInput,
+//                    onValueChange = { passwordInput = it },
+//                    label = { Text("Wallet Password") },
+//                    modifier = Modifier.fillMaxWidth(),
+//                    visualTransformation = PasswordVisualTransformation()
+//                )
+                if (showResult) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = "Wallet Address: $walletAddress")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    RingCore.importWalletAddress(context, walletInput).let {
+                        if(it?.getAddress() != null) {
+                            walletAddress = it.getAddress()!!
+                            RingCore.setWalletData(context, it)
+                            onDismiss()
+                        }
+                    }
+//                    walletAddress = if (walletInput.contains(" ")) {
+//                        importWalletFromMnemonic(walletInput, passwordInput)
+//                    } else {
+//                        importWalletFromPrivateKey(walletInput)
+//                    }
+                    showResult = true
+                }
+            ) {
+                Text("Import")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 fun writeWalletToTag(context: Context) {
@@ -402,5 +512,19 @@ class SplashViewModel : ViewModel() {
             _wallet.value = it
             return it
         }
+    }
+
+    fun resetWallet(context: Context) {
+        if(!RingCore.hasWallet()) {
+            showToast(context, "Wallet not exist")
+            return
+        }
+        RingCore.resetWallet(context).let {
+            _wallet.value = null
+        }
+    }
+
+    fun refreshWallet() {
+        _wallet.value = RingCore.getWalletData()
     }
 }

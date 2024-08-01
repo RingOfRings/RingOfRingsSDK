@@ -96,7 +96,9 @@ class CryptoUtil {
                 val privateKey = RingCore.sharedPrefs?.getString(PRIVATE_KEY, null)
                 val address = RingCore.sharedPrefs?.getString(ADDRESS, null)
                 Log.d("getWallet", "mnemonic: ${mnemonic}")
-                crypto?.setMnemonic(mnemonic!!.split(" "))
+                if(mnemonic != null) {
+                    crypto?.setMnemonic(mnemonic!!.split(" "))
+                }
                 crypto?.setPublicKey(publicKey)
                 crypto?.setPrivateKey(privateKey)
                 crypto?.setAddress(address)
@@ -110,11 +112,14 @@ class CryptoUtil {
 
         fun setWalletData(context: Context, data: RingCryptoResponse?) {
             RingCore.initSharedPrefs(context).let {
-                    RingCore.sharedPrefs!!.edit().putString(MNEMONIC, data?.getMnemonic()).apply()
-                    RingCore.sharedPrefs!!.edit().putString(PUBLIC_KEY, data?.getPublicKey()).apply()
-                    RingCore.sharedPrefs!!.edit().putString(PRIVATE_KEY, data?.getPrivateKey()).apply()
-                    RingCore.sharedPrefs!!.edit().putString(ADDRESS, data?.getAddress()).apply()
+                if(data?.getMnemonic() != null) {
+                    RingCore.sharedPrefs!!.edit().putString(MNEMONIC, data.getMnemonic()).apply()
                 }
+                RingCore.sharedPrefs!!.edit().putString(PUBLIC_KEY, data?.getPublicKey()).apply()
+                RingCore.sharedPrefs!!.edit().putString(PRIVATE_KEY, data?.getPrivateKey()).apply()
+                RingCore.sharedPrefs!!.edit().putString(ADDRESS, data?.getAddress()).apply()
+                Log.d("setWalletData", "wallet data: ${it}")
+            }
         }
     }
 }

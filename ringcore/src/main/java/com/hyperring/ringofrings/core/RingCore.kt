@@ -8,12 +8,14 @@ import android.util.Log
 import android.widget.Toast
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.hyperring.ringofrings.core.utils.alchemy.AlchemyApi
 import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
 import com.hyperring.sdk.core.nfc.HyperRingData
 import com.hyperring.sdk.core.nfc.HyperRingNFC
 import com.hyperring.sdk.core.nfc.HyperRingTag
+import org.web3j.crypto.Credentials
 
 class RingCore {
     companion object {
@@ -81,11 +83,27 @@ class RingCore {
             return wallet
         }
 
+        fun resetWallet(context: Context) {
+            setWalletData(context, null)
+        }
+
         /**
          * todo vault address is public key check it
          */
-        fun importWalletAddress() {
-
+        fun importWalletAddress(context: Context, privateKey: String): RingCryptoResponse? {
+            var response: RingCryptoResponse? = null
+            try {
+                val credentials: Credentials = Credentials.create(privateKey)
+                response = RingCryptoResponse()
+                response.setPrivateKey(privateKey)
+                response.setAddress(credentials.address)
+                response.setPublicKey(credentials.ecKeyPair.publicKey.toString(16))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showToast(context, "Error loading wallet from private key")
+                return null
+            }
+            return response
         }
 
         /**
@@ -149,7 +167,7 @@ class RingCore {
         }
 
         fun getMyTokens() {
-
+            AlchemyApi
         }
 
         fun signing() {
