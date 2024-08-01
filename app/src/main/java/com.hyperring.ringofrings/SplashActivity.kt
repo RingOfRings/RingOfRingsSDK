@@ -425,7 +425,7 @@ fun writeWalletToTag(context: Context) {
         showToast(context, "Wallet not exist")
         return
     }
-    val hrData = AESHRData.createData(20L, RingCore.getWalletData()!!.getMnemonic()!!)
+    val hrData = AESHRData.createData(20L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
     RingCore.setWalletDataToRing(context, hrData)
 }
 

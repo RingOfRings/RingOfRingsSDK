@@ -55,10 +55,10 @@ class AESHRData(tag: Tag?) : HyperRingData(tag) {
         /**
          * Return {"id": id, "data": encryptedString("name": "John doe") }
          */
-        fun createData(id: Long, name: String): AESHRData {
+        fun createData(id: Long, mnemonic: String?, privateKey: String): AESHRData {
             val demoNFCData = AESHRData(id, "")
 //            var jsonData = "{\"id\":$id,\"data\":\"{\\\"name\\\":\\\"$name\\\"}\"}"
-            demoNFCData.encrypt("{\\\"name\\\":\\\"$name\\\"}")
+            demoNFCData.encrypt("{\\\"mnemonic\\\":\\\"$mnemonic\\\", \\\"private\\\":\\\"$privateKey\\\"}")
             return demoNFCData
         }
 
