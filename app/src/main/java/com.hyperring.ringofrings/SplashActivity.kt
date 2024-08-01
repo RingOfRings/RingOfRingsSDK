@@ -359,7 +359,12 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
 
 @Composable
 fun WalletImportDialog(onDismiss: () -> Unit) {
-    var walletInput by remember { mutableStateOf("35718dbbcfc6e3046b61ae05305f8acdde2dbbf3daa16884c0a1353eb0f8f83a") }
+    // test empty wallet
+//    var walletInput by remember { mutableStateOf("35718dbbcfc6e3046b61ae05305f8acdde2dbbf3daa16884c0a1353eb0f8f83a") }
+    // moro`s wallet
+    // todo check it, change or delete it
+    var walletInput by remember { mutableStateOf("4cd6d40291a22f8fc0895b2f1cf1cedb61b43a07d7d5701dcd24fc7c54079d35") }
+
 //    var passwordInput by remember { mutableStateOf("") }
     var walletAddress by remember { mutableStateOf("") }
     var showResult by remember { mutableStateOf(false) }

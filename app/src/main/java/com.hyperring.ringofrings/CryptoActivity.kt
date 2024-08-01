@@ -1,4 +1,5 @@
 package com.hyperring.ringofrings
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -20,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
@@ -27,6 +29,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
+import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.utils.alchemy.AlchemyApi
 import com.hyperring.ringofrings.core.utils.alchemy.data.BalancesJsonBody
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalance
@@ -58,6 +61,7 @@ class CryptoActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         cryptoActivity = this
         cryptoViewModel = ViewModelProvider(this)[CryptoViewModel::class.java]
+        cryptoViewModel.fetchItems(this)
         lifecycleScope.launch {
             // If application is started, init nfc status
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -114,26 +118,19 @@ class CryptoViewModel : ViewModel() {
     private val _items = MutableStateFlow<List<TokenBalance>>(emptyList())
     val items: StateFlow<List<TokenBalance>> = _items
 
-    init {
-        fetchItems()
+    private fun getApiKey(context: Context): String {
+        return RingCore.getAlchemyKey(context)!!
+//        return "wcdDFTfh6RhkUf14WB61TTU8tPt_ww-r"
     }
 
-    private fun getApiKey(): String {
-        return "wcdDFTfh6RhkUf14WB61TTU8tPt_ww-r"
-    }
-
-    private fun fetchItems() {
+    fun fetchItems(context: Context) {
         viewModelScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
                     // 네트워크 요청을 수행합니다.
-                    val params = listOf("0x607f4c5bb672230e8672085532f7e901544a7375")
-                    val jsonBody : BalancesJsonBody = BalancesJsonBody(params = params)
-                    var result = AlchemyApi().service.getTokenBalances(getApiKey(), jsonBody).execute()
-                    Log.d("token result", "result${result.isSuccessful}")
-                    Log.d("token result", "result${result.body()}")
-                    uiState.value.tokens = result.body()
-                    _items.value = result.body()?.result?.tokenBalances?: emptyList()
+                    var result = RingCore.getMyTokens(context)
+                    uiState.value.tokens = result
+                    _items.value = result?.result?.tokenBalances?: emptyList()
                 }
 
                 for (tokenBalance in uiState.value.tokens?.result?.tokenBalances!!) {

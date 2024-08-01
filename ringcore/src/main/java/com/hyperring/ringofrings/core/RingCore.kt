@@ -9,6 +9,8 @@ import android.widget.Toast
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.utils.alchemy.AlchemyApi
+import com.hyperring.ringofrings.core.utils.alchemy.data.BalancesJsonBody
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalances
 import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
@@ -166,8 +168,22 @@ class RingCore {
             sharedPrefs?.edit()?.putString("alchemy_key", key)?.apply()
         }
 
-        fun getMyTokens() {
-            AlchemyApi
+        fun getMyTokens(context: Context): TokenBalances? {
+            if(getWalletData() == null) {
+                return null
+            }
+//            val params = listOf("0x607f4c5bb672230e8672085532f7e901544a7375")
+            val address: String? = getWalletData()!!.getAddress()
+            if(address == null) {
+                showToast(context, "Address not exist")
+                return null
+            }
+            val params = listOf(address)
+            val jsonBody : BalancesJsonBody = BalancesJsonBody(params = params)
+            var result = AlchemyApi().service.getTokenBalances(getAlchemyKey(context), jsonBody).execute()
+            Log.d("token result", "result${result.isSuccessful}")
+            Log.d("token result", "result${result.body()}")
+            return result.body()
         }
 
         fun signing() {
