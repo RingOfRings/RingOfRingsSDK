@@ -38,6 +38,9 @@ import org.web3j.utils.Convert
 import java.math.BigDecimal
 import java.math.BigInteger
 
+/***
+ * Management Every Ring Core Functions
+ */
 class RingCore {
     companion object {
         private const val FILE_NAME = "ring_of_rings"
@@ -53,6 +56,7 @@ class RingCore {
 
         /**
          * Get alchemy key from local db
+         * If user not setting. Return default alchemy key
          */
         fun getAlchemyKey(context: Context): String? {
             initSharedPrefs(context).let {
@@ -62,7 +66,7 @@ class RingCore {
         }
 
         /**
-         * Init local db (SharedPreferences)
+         * Init local db (EncryptedSharedPreferences)
          */
         fun initSharedPrefs(context: Context) {
             if(sharedPrefs == null) {
@@ -89,7 +93,7 @@ class RingCore {
         }
 
         /**
-         * Create wallet
+         * Create wallet(Local DB)
          */
         fun createWallet(context: Context): RingCryptoResponse? {
             initSharedPrefs(context)
@@ -99,17 +103,21 @@ class RingCore {
                 showToast(context, "Network Error.")
                 return null
             }
+
             val wallet = CryptoUtil.createWallet(context)
             setWalletData(context, wallet)
             return wallet
         }
 
+        /**
+         * Reset wallet data (Local DB)
+         */
         fun resetWallet(context: Context) {
             setWalletData(context, null)
         }
 
         /**
-         * todo vault address is public key check it
+         * Import WalletAddress (using private key)
          */
         fun importWalletAddress(context: Context, privateKey: String): RingCryptoResponse? {
             var response: RingCryptoResponse? = null
@@ -141,6 +149,9 @@ class RingCore {
             CryptoUtil.setWalletData(context, data)
         }
 
+        /**
+         * To NFC Tag, Set wallet data
+         */
         fun setWalletDataToRing(context: Context, hrData: HyperRingData){
             val walletData = getWalletData()
             if(walletData == null) {
@@ -151,13 +162,11 @@ class RingCore {
             fun onDiscovered(tag: HyperRingTag): HyperRingTag {
                 Log.d("onDiscovered", "$tag / ${tag.data} / ${tag.data.data}")
                 showToast(context, "success")
-//                NFCUtil.stopPolling(context)
-//                val tagId = 10L
                 val tagId = null
                 HyperRingNFC.write(tagId, tag, hrData)
                 return tag
             }
-            NFCUtil.stopPolling(context)
+            stopPollingRingWalletData(context)
             NFCUtil.startPolling(context, onDiscovered = ::onDiscovered)
         }
 
@@ -165,7 +174,7 @@ class RingCore {
          * Start polling Wallet Data. If get Data. listening event at onDiscovered
          */
         fun startPollingRingWalletData(context: Context, onDiscovered: (tag: HyperRingTag) -> HyperRingTag) {
-            NFCUtil.stopPolling(context)
+            stopPollingRingWalletData(context)
             NFCUtil.startPolling(context, onDiscovered = onDiscovered)
         }
 
@@ -177,26 +186,14 @@ class RingCore {
         }
 
         /**
-         * Set Alchemy API Key in Local Database
-         */
-        fun setAlchemyAPIKey(key: String?) {
-            sharedPrefs?.edit()?.putString("alchemy_key", key)?.apply()
-        }
-
-        fun setTokenImport(key: String?) {
-            sharedPrefs?.edit()?.putString("alchemy_key", key)?.apply()
-        }
-
-        /**
          * If address parameter is not null
          * get address token info.
-         * else call wallet address
+         * else call using wallet address
          */
         fun getMyTokens(context: Context, address: String?): TokenBalances? {
             if(getWalletData() == null) {
                 return null
             }
-//            val params = listOf("0x607f4c5bb672230e8672085532f7e901544a7375")
             val _address: String? = address ?: getWalletData()!!.getAddress()
             if(_address == null) {
                 showToast(context, "Address not exist")
@@ -206,8 +203,8 @@ class RingCore {
             Log.d("getMyTokens", "address: $_address")
             val jsonBody : BalancesJsonBody = BalancesJsonBody(params = params)
             var result = AlchemyApi().service.getTokenBalances(getAlchemyKey(context), jsonBody).execute()
-            Log.d("token result", "result:  ${result.isSuccessful}")
-            Log.d("token result", "result: ${result.body()}")
+            Log.d("getMyTokens", "result:  ${result.isSuccessful}")
+            Log.d("getMyTokens", "result: ${result.body()}")
             return result.body()
         }
 
@@ -224,6 +221,7 @@ class RingCore {
 
         /**
          * Signing
+         * If scanned Tag`s data is RingCore data and RingCore Wallet data has same App user Wallet data
          */
         fun signing(context: Context, hrChallenge: HyperRingMFAChallengeInterface, autoDismiss: Boolean=false, afterDiscovered: (Boolean) -> Boolean) {
             val mfaData: MutableList<HyperRingMFAChallengeInterface> = mutableListOf()
@@ -241,9 +239,7 @@ class RingCore {
                             Handler(Looper.getMainLooper()).postDelayed(Runnable {
                                 HyperRingNFC.startNFCTagPolling(context as Activity, { tag -> tag })
                             }, 100)
-
                         }
-
                     }
                 }
             }
@@ -286,7 +282,7 @@ class RingCore {
 
         /**
          * transactionToken
-         * If you want create UI yourself. use this function
+         * If you want to make MFA UI yourself. use this function
          */
         fun transactionToken(context: Context, toAddress: String, amount: BigInteger, defaultGasPrice: BigDecimal = AlchemyApi.DEFAULT_GAS_PRICE) {
             CoroutineScope(Dispatchers.IO).launch {
