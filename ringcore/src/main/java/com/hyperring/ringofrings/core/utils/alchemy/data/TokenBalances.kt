@@ -12,5 +12,5 @@ data class TokenBalanceResult(
 )
 data class TokenBalance(
     val contractAddress: String,
-    val tokenBalances: String
+    val tokenBalance: String
 )

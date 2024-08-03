@@ -51,6 +51,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.RingCore
+import com.hyperring.ringofrings.core.RingCore.Companion.showToast
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalance
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
@@ -123,40 +124,51 @@ class SplashActivity : ComponentActivity() {
 fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
     val alchemyKey = viewModel.alchemyKey.collectAsState()
     var text by remember { mutableStateOf(RingCore.sharedPrefs?.getString("alchemy_key", alchemyKey.value?:"")) }
-    return Row() {
-        Box(modifier = Modifier
-            .weight(1f)
-            .height(65.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            OutlinedTextField(
-                value = text?:"",
-                shape = RoundedCornerShape(10.dp),
-                textStyle = TextStyle(fontSize = 13.sp),
-                onValueChange = {
-                    text = it
-                    viewModel.updateAlchemyKey(text?:"")
-                },
-                label = { Text("Alchemy API Key") }
-            )
-        }
-        Box(modifier = Modifier
-            .height(70.dp)
-            .padding(start = 5.dp)
-            .width(90.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            FilledTonalButton(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                onClick = {
-                    viewModel.updateAlchemyKey(RingCore.DEFAULT_ALCHEMY_KEY)
-                    text = RingCore.DEFAULT_ALCHEMY_KEY
-                }) {
-                Text("Reset", textAlign = TextAlign.Center)
+    return Box(modifier = modifier.padding(10.dp)) {
+        Box(modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xEE55CC7A))
+            .fillMaxWidth()
+            .padding(10.dp)
+            .height((70.dp))) {
+            Row(modifier = modifier.align(Alignment.Center)) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(60.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    OutlinedTextField(
+                        value = text ?: "",
+                        shape = RoundedCornerShape(10.dp),
+                        textStyle = TextStyle(fontSize = 13.sp),
+                        onValueChange = {
+                            text = it
+                            viewModel.updateAlchemyKey(text ?: "")
+                        },
+                        label = { Text("Alchemy API Key") }
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .height(70.dp)
+                        .padding(start = 5.dp)
+                        .width(90.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    FilledTonalButton(
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        onClick = {
+                            viewModel.updateAlchemyKey(RingCore.DEFAULT_ALCHEMY_KEY)
+                            text = RingCore.DEFAULT_ALCHEMY_KEY
+                        }) {
+                        Text("Reset", textAlign = TextAlign.Center)
+                    }
+                }
             }
-        }
+    }
     }
 }
 
@@ -199,7 +211,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                             onClick = {
                                 viewModel.generateWallet(context)
                             }) {
-                            Text("Generate Wallet", textAlign = TextAlign.Center)
+                            Text("Generate\nWallet", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
                         }
                     }
                     Box(modifier = modifier.width(5.dp))
@@ -212,7 +224,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                             onClick = {
                                 viewModel.resetWallet(context)
                             }) {
-                            Text("Reset Wallet", textAlign = TextAlign.Center)
+                            Text("Reset\nWallet", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
                         }
                     }
                     Box(modifier = modifier.width(5.dp))
@@ -226,7 +238,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                                 showImportWalletDialog = true
 //                                viewModel.importWallet(context)
                             }) {
-                            Text("Import Wallet", textAlign = TextAlign.Center)
+                            Text("Import\nWallet", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
                         }
                     }
                 }
@@ -294,10 +306,10 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
         Box(modifier = modifier.height(10.dp))
         Box(modifier = modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF33BB6A))
+            .background(Color(0xFF33AA8A))
             .padding(10.dp)
             .fillMaxWidth()
-            .height((100.dp))) {
+            .height((115.dp))) {
             val context = LocalContext.current
             val activity = context as? Activity
 
@@ -305,14 +317,47 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                 modifier = modifier
                     .align(Alignment.TopCenter)
             ) {
-                FilledTonalButton(
-                    modifier = modifier.fillMaxWidth(),
-                    onClick = {
-//                        writeWalletToTag(context)
-                        val intent: Intent = Intent(activity, CryptoActivity::class.java)
-                        activity?.startActivity(intent)
-                    }) {
-                    Text("Show list", textAlign = TextAlign.Center)
+                Row() {
+                    Box(modifier = Modifier
+                        .weight(1f)
+                        .padding(bottom = 5.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FilledTonalButton(
+                            modifier = modifier.fillMaxWidth(),
+                            onClick = {
+                                val intent: Intent = Intent(activity, CryptoActivity::class.java)
+                                activity?.startActivity(intent)
+                            }) {
+                            Text("Fetch\nTokens", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
+                        }
+                    }
+                    Box(modifier = modifier.width(5.dp))
+                    Box(modifier = Modifier
+                        .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FilledTonalButton(
+                            modifier = modifier.fillMaxWidth(),
+                            onClick = {
+//                                viewModel.resetWallet(context)
+                            }) {
+                            Text("Signing\nWith Ring", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
+                        }
+                    }
+                    Box(modifier = modifier.width(5.dp))
+                    Box(modifier = Modifier
+                        .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FilledTonalButton(
+                            modifier = modifier.fillMaxWidth(),
+                            onClick = {
+//                                viewModel.resetWallet(context)
+                            }) {
+                            Text("Transfer\nTokens", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
+                        }
+                    }
                 }
                 Row {
                     Box(
@@ -326,7 +371,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                             onClick = {
                                 writeWalletToTag(context)
                             }) {
-                            Text("Write wallet data to Tag", textAlign = TextAlign.Center)
+                            Text("Write wallet data to TAG", textAlign = TextAlign.Center)
                         }
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -341,7 +386,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                             onClick = {
                                 readWalletFromTag(context)
                             }) {
-                            Text("read Wallet data from Tag", textAlign = TextAlign.Center)
+                            Text("read Wallet data from TAG", textAlign = TextAlign.Center)
                         }
                     }
                 }
@@ -379,7 +424,7 @@ fun WalletImportDialog(onDismiss: () -> Unit) {
                 TextField(
                     value = walletInput,
                     onValueChange = { walletInput = it },
-                    label = { Text("Mnemonic or Private Key") },
+                    label = { Text("Private Key") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))

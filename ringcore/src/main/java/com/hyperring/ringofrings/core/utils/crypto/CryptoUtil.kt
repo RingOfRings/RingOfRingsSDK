@@ -103,6 +103,9 @@ class CryptoUtil {
                 crypto?.setPrivateKey(privateKey)
                 crypto?.setAddress(address)
                 Log.d("getWallet", "$crypto")
+                if(crypto?.getAddress() == null) {
+                    return null
+                }
                 return crypto
             } catch (e: Exception) {
                 Log.e("getWallet", "$e")
@@ -111,13 +114,17 @@ class CryptoUtil {
         }
 
         fun setWalletData(context: Context, data: RingCryptoResponse?) {
+            if(data == null) {
+                RingCore.sharedPrefs!!.edit().clear().apply()
+                return
+            }
             RingCore.initSharedPrefs(context).let {
-                if(data?.getMnemonic() != null) {
-                    RingCore.sharedPrefs!!.edit().putString(MNEMONIC, data.getMnemonic()).apply()
-                }
                 RingCore.sharedPrefs!!.edit().putString(PUBLIC_KEY, data?.getPublicKey()).apply()
                 RingCore.sharedPrefs!!.edit().putString(PRIVATE_KEY, data?.getPrivateKey()).apply()
                 RingCore.sharedPrefs!!.edit().putString(ADDRESS, data?.getAddress()).apply()
+                if(data?.getMnemonic() != null) {
+                    RingCore.sharedPrefs!!.edit().putString(MNEMONIC, data.getMnemonic()).apply()
+                }
                 Log.d("setWalletData", "wallet data: ${it}")
             }
         }

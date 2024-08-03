@@ -28,11 +28,6 @@
             android:name=".CryptoActivity"
             android:theme="@style/Theme.RingOfRings">
         </activity>
-
-        <activity
-            android:name=".MainActivity"
-            android:theme="@style/Theme.RingOfRings">
-        </activity>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>

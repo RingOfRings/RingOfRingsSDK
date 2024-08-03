@@ -18,6 +18,8 @@ import com.hyperring.sdk.core.nfc.HyperRingData
 import com.hyperring.sdk.core.nfc.HyperRingNFC
 import com.hyperring.sdk.core.nfc.HyperRingTag
 import org.web3j.crypto.Credentials
+import org.web3j.crypto.Sign
+import org.web3j.utils.Numeric
 
 class RingCore {
     companion object {
@@ -168,26 +170,42 @@ class RingCore {
             sharedPrefs?.edit()?.putString("alchemy_key", key)?.apply()
         }
 
-        fun getMyTokens(context: Context): TokenBalances? {
+        /**
+         * If address parameter is not null
+         * get address token info.
+         * else call wallet address
+         */
+        fun getMyTokens(context: Context, address: String?): TokenBalances? {
             if(getWalletData() == null) {
                 return null
             }
 //            val params = listOf("0x607f4c5bb672230e8672085532f7e901544a7375")
-            val address: String? = getWalletData()!!.getAddress()
-            if(address == null) {
+            val _address: String? = address ?: getWalletData()!!.getAddress()
+            if(_address == null) {
                 showToast(context, "Address not exist")
                 return null
             }
-            val params = listOf(address)
+            val params = listOf(_address)
+            Log.d("getMyTokens", "address: $_address")
             val jsonBody : BalancesJsonBody = BalancesJsonBody(params = params)
             var result = AlchemyApi().service.getTokenBalances(getAlchemyKey(context), jsonBody).execute()
-            Log.d("token result", "result${result.isSuccessful}")
-            Log.d("token result", "result${result.body()}")
+            Log.d("token result", "result:  ${result.isSuccessful}")
+            Log.d("token result", "result: ${result.body()}")
             return result.body()
         }
 
-        fun signing() {
-
+        fun signing(context: Context, privateKey: String, publicKey: String): String? {
+            try {
+                val credentials = Credentials.create(privateKey)
+                val signMessage = Sign.signPrefixedMessage(publicKey.toByteArray(), credentials.ecKeyPair)
+                val signature = signMessage.r + signMessage.s + signMessage.v
+                val signedData: String = Numeric.toHexString(signature)
+                return signedData
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showToast(context, "Error signing")
+            }
+            return null
         }
 
         fun transactionToken() {
