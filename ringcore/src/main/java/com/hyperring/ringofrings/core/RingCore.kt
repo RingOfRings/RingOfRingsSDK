@@ -1,5 +1,7 @@
 package com.hyperring.ringofrings.core
 import NetworkUtil
+import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Handler
@@ -16,6 +18,9 @@ import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetadataJsonBody
 import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
+import com.hyperring.sdk.core.data.HyperRingMFAChallengeInterface
+import com.hyperring.sdk.core.data.MFAChallengeResponse
+import com.hyperring.sdk.core.mfa.HyperRingMFA
 import com.hyperring.sdk.core.nfc.HyperRingData
 import com.hyperring.sdk.core.nfc.HyperRingNFC
 import com.hyperring.sdk.core.nfc.HyperRingTag
@@ -210,18 +215,43 @@ class RingCore {
         /**
          * Signing
          */
-        fun signing(context: Context, privateKey: String): Boolean {
-            try {
-                if(getWalletData() == null) {
-                    showToast(context, "Wallet not eixst")
-                    return false
+        fun signing(context: Context, hrChallenge: HyperRingMFAChallengeInterface, autoDismiss: Boolean=false) {
+            val mfaData: MutableList<HyperRingMFAChallengeInterface> = mutableListOf()
+            // AES Type
+            mfaData.add(hrChallenge)
+            HyperRingMFA.initializeHyperRingMFA(mfaData= mfaData.toList())
+
+            fun onDiscovered(dialog: Dialog?, response: MFAChallengeResponse?) {
+                Log.d("Signing", "requestMFADialog result: ${response}}")
+                HyperRingMFA.verifyHyperRingMFAAuthentication(response).let {
+                    showToast(context, if(it) "Success" else "Failed")
+                    if(it && autoDismiss) {
+                        dialog?.dismiss()
+                    }
                 }
-                return getWalletData()!!.getPrivateKey() == privateKey
-            } catch (e: Exception) {
-                e.printStackTrace()
-                showToast(context, "Signing Exception")
             }
-            return false
+
+            HyperRingMFA.requestHyperRingMFAAuthentication(
+                activity = context as Activity,
+                onNFCDiscovered = ::onDiscovered,
+                autoDismiss = autoDismiss)
+//            fun signingWithTag(hyperRingTag: HyperRingTag): HyperRingTag {
+//                showToast(context, AESHRData.decrypt(hyperRingTag.data.data))
+//                return hyperRingTag
+//            }
+//            startPollingRingWalletData(context, onDiscovered = :: signingWithTag)
+//
+//            try {
+//                if(getWalletData() == null) {
+//                    showToast(context, "Wallet not eixst")
+//                    return false
+//                }
+//                return getWalletData()!!.getPrivateKey() == privateKey
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                showToast(context, "Signing Exception")
+//            }
+//            return false
         }
 
 //        fun signing(context: Context, privateKey: String, publicKey: String): String? {

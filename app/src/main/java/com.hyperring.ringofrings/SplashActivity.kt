@@ -55,6 +55,7 @@ import com.hyperring.ringofrings.core.RingCore.Companion.showToast
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalance
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
+import com.hyperring.ringofrings.data.mfa.AESMFAChallengeData
 import com.hyperring.ringofrings.data.nfc.AESHRData
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
 import com.hyperring.sdk.core.nfc.HyperRingTag
@@ -341,7 +342,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         FilledTonalButton(
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
-//                                viewModel.resetWallet(context)
+                                signing(context)
                             }) {
                             Text("Signing\nWith Ring", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
                         }
@@ -401,6 +402,12 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
             viewModel.refreshWallet()
         })
     }
+}
+
+fun signing(context: Context) {
+    val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
+    val hrChallenge = AESMFAChallengeData(10L, hrData.data!!, null)
+    RingCore.signing(context, hrChallenge)
 }
 
 @Composable
@@ -476,7 +483,7 @@ fun writeWalletToTag(context: Context) {
         showToast(context, "Wallet not exist")
         return
     }
-    val hrData = AESHRData.createData(20L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
+    val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
     RingCore.setWalletDataToRing(context, hrData)
 }
 
