@@ -1,14 +1,27 @@
 package com.hyperring.ringofrings.core.utils.crypto
+import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.util.Log
+import android.view.Window
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.EditText
+import com.hyperring.ringofrings.core.R
 import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
+import com.hyperring.sdk.core.data.MFAChallengeResponse
+import com.hyperring.sdk.core.nfc.HyperRingNFC
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.bitcoinj.crypto.MnemonicCode
 import org.web3j.crypto.Bip32ECKeyPair
 import org.web3j.crypto.CipherException
 import org.web3j.crypto.Credentials
 import org.web3j.utils.Numeric
 import java.io.IOException
+import java.math.BigInteger
 import java.security.GeneralSecurityException
 import java.security.SecureRandom
 
@@ -126,6 +139,40 @@ class CryptoUtil {
                     RingCore.sharedPrefs!!.edit().putString(MNEMONIC, data.getMnemonic()).apply()
                 }
                 Log.d("setWalletData", "wallet data: ${it}")
+            }
+        }
+
+        fun showTransactionTokenDialog(
+            activity: Activity,
+            eventListener: (toAddress: String, amount: BigInteger) -> Unit?,
+            autoDismiss: Boolean = true
+        ) {
+            var dialog: Dialog? = null
+            CoroutineScope(Dispatchers.Main).launch {
+                activity.runOnUiThread {
+                    dialog = Dialog(activity)
+                    dialog?.requestWindowFeature(Window.FEATURE_NO_TITLE)
+                    dialog?.setCancelable(true)
+                    dialog?.setContentView(R.layout.transaction_token_dlg_layout)
+                    val lp = WindowManager.LayoutParams()
+                    lp.copyFrom(dialog?.window?.attributes)
+                    lp.width = WindowManager.LayoutParams.MATCH_PARENT
+                    dialog?.show()
+                    dialog?.window?.setAttributes(lp)
+                    dialog?.window?.findViewById<Button>(R.id.sendButton)?.setOnClickListener {
+                        val toAddress = dialog?.window?.findViewById<EditText>(R.id.toAddressInput)?.text.toString()
+                        var amount = dialog?.window?.findViewById<EditText>(R.id.amountInput)?.text.toString()
+                        if(amount == "") {
+                            amount = 0.toString()
+                        }
+                        Log.d("CryptoUtil", "toAddress: $toAddress, amount: $amount")
+                        dialog?.dismiss()
+                        eventListener(toAddress, BigInteger(amount))
+                    }
+                    dialog?.setOnDismissListener {
+
+                    }
+                }
             }
         }
     }

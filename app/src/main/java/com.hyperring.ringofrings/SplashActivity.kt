@@ -38,9 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -48,11 +46,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.RingCore.Companion.showToast
-import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalance
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
 import com.hyperring.ringofrings.data.mfa.AESMFAChallengeData
@@ -60,12 +55,10 @@ import com.hyperring.ringofrings.data.nfc.AESHRData
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
 import com.hyperring.sdk.core.nfc.HyperRingTag
 import com.hyperring.sdk.core.nfc.NFCStatus
-import io.jsonwebtoken.Jwts
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.crypto.SecretKey
 
 
 /**
@@ -342,7 +335,11 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         FilledTonalButton(
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
-                                signing(context)
+                                fun afterDiscovered(success: Boolean): Boolean {
+                                    showToast(context, "Signinig: $success")
+                                    return success
+                                }
+                                signing(context, afterDiscovered = :: afterDiscovered)
                             }) {
                             Text("Signing\nWith Ring", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
                         }
@@ -355,7 +352,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         FilledTonalButton(
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
-//                                viewModel.resetWallet(context)
+                                transactionToken(context)
                             }) {
                             Text("Transfer\nTokens", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))
                         }
@@ -404,10 +401,20 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
     }
 }
 
-fun signing(context: Context) {
+fun transactionToken(context: Context) {
+    fun afterDiscovered(success: Boolean): Boolean {
+        if(success) {
+            RingCore.transactionTokenWithMFA(context)
+        }
+        return success
+    }
+    signing(context, afterDiscovered = :: afterDiscovered)
+}
+
+fun signing(context: Context, afterDiscovered: (Boolean) -> Boolean) {
     val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
     val hrChallenge = AESMFAChallengeData(10L, hrData.data!!, null)
-    RingCore.signing(context, hrChallenge)
+    RingCore.signing(context, hrChallenge, afterDiscovered = afterDiscovered, autoDismiss = true)
 }
 
 @Composable
