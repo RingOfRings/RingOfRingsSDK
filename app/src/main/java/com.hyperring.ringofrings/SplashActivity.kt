@@ -141,7 +141,7 @@ fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                     OutlinedTextField(
                         value = text ?: "",
                         shape = RoundedCornerShape(10.dp),
-                        textStyle = TextStyle(fontSize = 13.sp),
+                        textStyle = TextStyle(fontSize = 12.sp),
                         onValueChange = {
                             text = it
                             viewModel.updateAlchemyKey(text ?: "")
@@ -151,14 +151,14 @@ fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                 }
                 Box(
                     modifier = Modifier
-                        .height(70.dp)
                         .padding(start = 5.dp)
-                        .width(90.dp),
+                        .height(70.dp)
+                        .width(85.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     FilledTonalButton(
                         modifier = modifier
-                            .fillMaxWidth()
+                            .width(85.dp)
                             .height(50.dp),
                         onClick = {
                             viewModel.updateAlchemyKey(RingCore.DEFAULT_ALCHEMY_KEY)
@@ -327,6 +327,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
                                 val intent: Intent = Intent(activity, CryptoActivity::class.java)
+                                intent.putExtra("address", RingCore.getWalletData()?.getAddress())
                                 activity?.startActivity(intent)
                             }) {
                             Text("Fetch\nTokens", textAlign = TextAlign.Center, style = TextStyle(fontSize = 13.sp))

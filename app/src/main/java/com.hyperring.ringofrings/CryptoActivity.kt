@@ -10,21 +10,31 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -32,14 +42,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import com.hyperring.ringofrings.core.RingCore
+import com.hyperring.ringofrings.core.RingCore.Companion.showToast
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalance
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalances
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetaDataResult
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.BigInteger
 
 
 /**
@@ -59,6 +73,11 @@ class CryptoActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val address: String? = intent.getStringExtra("address")
+        Log.d("CryptoActivity", "crypto address: $address")
+        if(address == null) {
+            showToast(this, "No address")
+            finish()
+        }
         cryptoActivity = this
         cryptoViewModel = ViewModelProvider(this)[CryptoViewModel::class.java]
         cryptoViewModel.fetchItems(this, address)
@@ -95,10 +114,11 @@ fun CryptoList(viewModel: CryptoViewModel) {
     else LazyColumn(modifier = Modifier.padding(16.dp)) {
         items(tokenBalances.value.size) { item ->
             Box(modifier = Modifier
-                .background(if(item % 2 != 0) Color.Gray else Color.LightGray)
                 .padding(5.dp)
+//                .background(if(item % 2 != 0) Color.Gray else Color.LightGray)
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color(0xEE55CC7A))
+                .padding(10.dp)
                 .fillMaxWidth()
                 .clickable {
                     val intent: Intent = Intent(activity, CryptoActivity::class.java)
@@ -107,18 +127,104 @@ fun CryptoList(viewModel: CryptoViewModel) {
                 },
                 ) {
                 Column {
-                    BasicText(text = "[Token Balances] ${tokenBalances.value.get(item).tokenBalance}",
-                        modifier = Modifier.padding(4.dp).background(Color(0xDD55CC7A)))
+                    BasicText(text = "[Token Balances] ${getTokenAmount(tokenBalances.value.get(item).tokenBalance)}",
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .background(Color(0xFF55CC7A))
+                    )
+                    BasicText(text = "(${tokenBalances.value.get(item).tokenBalance})",
+                        style = TextStyle(fontSize = 10.sp),
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .background(Color(0xFF55CC7A)))
                     BasicText(text = "[Contract Address] ${tokenBalances.value.get(item).contractAddress}",
-                        modifier = Modifier.padding(4.dp).background(Color(0xCC55CC7A)))
+                        modifier = Modifier
+                            .background(Color(0xFFFFFFFF))
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(10.dp)))
+                    CryptoDetailBox(viewModel = viewModel, address = tokenBalances.value.get(item).contractAddress)
                 }
             }
         }
     }
 }
 
+@Composable
+fun CryptoDetailBox(modifier: Modifier = Modifier, viewModel: CryptoViewModel, address: String) {
+    var metaDataDetail = viewModel.metaData.collectAsState()
+//    var metaDataDetail = remember { mutableStateOf(mapOf<String, TokenMetaDataResult>()) }
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    Box(modifier = modifier
+        .background(color = Color.LightGray)
+        .clip(RoundedCornerShape(10.dp))
+        .padding(10.dp)
+    ) {
+        Column (
+            modifier = modifier,
+        ) {
+            Box(
+                modifier = modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White)
+                    .padding(5.dp)
+                    .fillMaxWidth()
+//                    .height((25.dp))
+            ) {
+                Row() {
+                    Text(
+                        text = "NAME: ${metaDataDetail.value[address]?.result?.name?:"--"}",
+                        modifier = modifier.fillMaxWidth().weight(1f),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "Demicals: ${metaDataDetail.value[address]?.result?.decimals?:"--"}",
+                        modifier = modifier.fillMaxWidth().weight(1f),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+            Box(modifier = modifier.height(5.dp))
+            Box(
+                modifier = modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White)
+                    .padding(5.dp)
+                    .fillMaxWidth()
+//                    .height((25.dp))
+            ) {
+                Row() {
+                    Text(
+                        text = "Logo: ${metaDataDetail.value[address]?.result?.logo?:"--"}",
+                        modifier = modifier.fillMaxWidth().weight(1f),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = "symbol: ${metaDataDetail.value[address]?.result?.symbol?:"--"}",
+                        modifier = modifier.fillMaxWidth().weight(1f),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun getTokenAmount(tokenBalance: String): String {
+    val decimalValue = BigInteger(tokenBalance.substring(2), 16)
+    val weiValue = BigDecimal(decimalValue)
+    val etherValue = weiValue.divide(BigDecimal.TEN.pow(18))
+    return etherValue.toString()
+}
+
 data class CryptoUiState(
     var tokens: TokenBalances? = null,
+    var metaDataMap: MutableMap<String, TokenMetaDataResult?> = mutableMapOf(),
 ) {
 }
 
@@ -129,9 +235,12 @@ class CryptoViewModel : ViewModel() {
     private val _items = MutableStateFlow<List<TokenBalance>>(emptyList())
     val items: StateFlow<List<TokenBalance>> = _items
 
+    private val _metaData = MutableStateFlow<Map<String, TokenMetaDataResult?>>(mapOf())
+    val metaData: StateFlow<Map<String, TokenMetaDataResult?>> = _metaData
+
     private fun getApiKey(context: Context): String {
         return RingCore.getAlchemyKey(context)!!
-//        return "wcdDFTfh6RhkUf14WB61TTU8tPt_ww-r"
+//        return "AXym-2aqo9_9icvXfUeVE_GNQj7-hdLj"
     }
 
     fun fetchItems(context: Context, address: String?) {
@@ -143,6 +252,9 @@ class CryptoViewModel : ViewModel() {
                     uiState.value.tokens = result
 //                    _items.value = result?.result?.tokenBalances?: emptyList()
                     _items.value = result?.result?.tokenBalances?: emptyList()
+                    _items.value.forEach {
+                        fetchMetaData(context, it.contractAddress)
+                    }
                 }
 
                 for (tokenBalance in uiState.value.tokens?.result?.tokenBalances!!) {
@@ -151,6 +263,25 @@ class CryptoViewModel : ViewModel() {
             } catch (e: Exception) {
                 // Handle the exception
                 Log.e("token","tokens ex: ${e.toString()}")
+            }
+        }
+    }
+
+    fun fetchMetaData(context: Context, address: String) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    // 네트워크 요청을 수행합니다.
+                    var result = RingCore.getTokenMetadata(context, address)
+                    uiState.value.metaDataMap[address] = result
+                    _metaData.value = _metaData.value.toMutableMap().apply {
+                        put(address, result)
+                    }
+                    Log.d("token","fetchMetaData($address): ${result?.result}")
+                }
+            } catch (e: Exception) {
+                // Handle the exception
+                Log.e("token","fetchMetaData ex: ${e.toString()}")
             }
         }
     }

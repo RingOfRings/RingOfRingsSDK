@@ -4,6 +4,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 
+/***
+ * Alchemy API Manager
+ * Default Base Url is seporia.
+ */
 class AlchemyApi(baseUrl: String = SEPORIA_BASE_URL) {
     val service: AlchemyService
 
@@ -18,6 +22,5 @@ class AlchemyApi(baseUrl: String = SEPORIA_BASE_URL) {
 
     companion object {
         private const val SEPORIA_BASE_URL = "https://eth-sepolia.g.alchemy.com"
-//        https://eth-sepolia.g.alchemy.com/v2/wcdDFTfh6RhkUf14WB61TTU8tPt_ww-r
     }
 }

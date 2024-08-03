@@ -1,6 +1,8 @@
 package com.hyperring.ringofrings.core.utils.alchemy;
 import com.hyperring.ringofrings.core.utils.alchemy.data.BalancesJsonBody;
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalances;
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetaDataResult;
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetadataJsonBody;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -13,5 +15,5 @@ public interface AlchemyService {
     Call<TokenBalances> getTokenBalances(@Path("apiKey") String apiKey, @Body BalancesJsonBody jsonBody);
 
     @POST("v2/{apiKey}")
-    Call<TokenBalances> importTokens(@Path("apiKey") String apiKey);
+    Call<TokenMetaDataResult> getTokenMetaData(@Path("apiKey") String apiKey, @Body TokenMetadataJsonBody jsonBody);
 }

@@ -10,7 +10,9 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.utils.alchemy.AlchemyApi
 import com.hyperring.ringofrings.core.utils.alchemy.data.BalancesJsonBody
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetaDataResult
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalances
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetadataJsonBody
 import com.hyperring.ringofrings.core.utils.crypto.CryptoUtil
 import com.hyperring.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
@@ -194,19 +196,47 @@ class RingCore {
             return result.body()
         }
 
-        fun signing(context: Context, privateKey: String, publicKey: String): String? {
+        /**
+         * Get token`s Metadata using address
+         */
+        fun getTokenMetadata(context: Context, address: String): TokenMetaDataResult? {
+            val params = listOf(address)
+            val jsonBody : TokenMetadataJsonBody = TokenMetadataJsonBody(params = params)
+            var result = AlchemyApi().service.getTokenMetaData(getAlchemyKey(context), jsonBody).execute()
+            Log.d("token result", "metadata: ${result.body()}")
+            return result.body()
+        }
+
+        /**
+         * Signing
+         */
+        fun signing(context: Context, privateKey: String): Boolean {
             try {
-                val credentials = Credentials.create(privateKey)
-                val signMessage = Sign.signPrefixedMessage(publicKey.toByteArray(), credentials.ecKeyPair)
-                val signature = signMessage.r + signMessage.s + signMessage.v
-                val signedData: String = Numeric.toHexString(signature)
-                return signedData
+                if(getWalletData() == null) {
+                    showToast(context, "Wallet not eixst")
+                    return false
+                }
+                return getWalletData()!!.getPrivateKey() == privateKey
             } catch (e: Exception) {
                 e.printStackTrace()
-                showToast(context, "Error signing")
+                showToast(context, "Signing Exception")
             }
-            return null
+            return false
         }
+
+//        fun signing(context: Context, privateKey: String, publicKey: String): String? {
+//            try {
+//                val credentials = Credentials.create(privateKey)
+//                val signMessage = Sign.signPrefixedMessage(publicKey.toByteArray(), credentials.ecKeyPair)
+//                val signature = signMessage.r + signMessage.s + signMessage.v
+//                val signedData: String = Numeric.toHexString(signature)
+//                return signedData
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                showToast(context, "Error signing")
+//            }
+//            return null
+//        }
 
         fun transactionToken() {
 
