@@ -52,6 +52,7 @@ import com.ringofrings.ringofrings.core.RingCore
 import com.ringofrings.ringofrings.core.RingCore.Companion.showToast
 import com.ringofrings.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.ringofrings.ringofrings.core.utils.nfc.NFCUtil
+import com.ringofrings.sdk.core.data.RingOfRingsMFAChallengeInterface
 import ringofrings.data.mfa.AESMFAChallengeData
 import ringofrings.data.nfc.AESHRData
 import ringofrings.ui.theme.RingOfRingsTheme
@@ -435,19 +436,21 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
 }
 
 fun transactionToken(context: Context) {
-    fun afterDiscovered(success: Boolean): Boolean {
-        if(success) {
-            RingCore.transactionTokenWithMFA(context)
+    fun buildChallengeData(ringCryptoResponse: RingCryptoResponse?): RingOfRingsMFAChallengeInterface? {
+        if(ringCryptoResponse?.getPrivateKey() == null) {
+            return null
         }
-        return success
+        val data = AESHRData.createData(10L, ringCryptoResponse.getMnemonic(), ringCryptoResponse.getPrivateKey()!!)
+        val challengeData = AESMFAChallengeData(10L, data.data!!, null)
+        return challengeData
     }
-    signing(context, afterDiscovered = :: afterDiscovered)
+    RingCore.transactionTokenWithMFA(context, buildChallengeData = :: buildChallengeData)
 }
 
 fun signing(context: Context, afterDiscovered: (Boolean) -> Boolean) {
     val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
-    val hrChallenge = AESMFAChallengeData(10L, hrData.data!!, null)
-    RingCore.signing(context, hrChallenge, afterDiscovered = afterDiscovered, autoDismiss = true)
+    val challengeData = AESMFAChallengeData(10L, hrData.data!!, null)
+    RingCore.signing(context, challengeData, afterDiscovered = afterDiscovered, autoDismiss = true)
 }
 
 @Composable

@@ -22,6 +22,7 @@ import com.ringofrings.ringofrings.core.utils.crypto.data.RingCryptoResponse
 import com.ringofrings.ringofrings.core.utils.nfc.NFCUtil
 import com.ringofrings.sdk.core.data.RingOfRingsMFAChallengeInterface
 import com.ringofrings.sdk.core.data.MFAChallengeResponse
+import com.ringofrings.sdk.core.data.RingOfRingsDataInterface
 import com.ringofrings.sdk.core.mfa.RingOfRingsMFA
 import com.ringofrings.sdk.core.nfc.RingOfRingsData
 import com.ringofrings.sdk.core.nfc.RingOfRingsNFC
@@ -154,7 +155,7 @@ class RingCore {
         /**
          * To NFC Tag, Set wallet data
          */
-        fun setWalletDataToRing(context: Context, hrData: RingOfRingsData, onDiscovered: (RingOfRingsTag) -> RingOfRingsTag){
+        fun setWalletDataToRing(context: Context, ringData: RingOfRingsData, onDiscovered: (RingOfRingsTag) -> RingOfRingsTag) {
             val walletData = getWalletData()
             if(walletData == null) {
                 showToast(context, "No Wallet Data")
@@ -237,10 +238,10 @@ class RingCore {
          * Signing
          * If scanned Tag`s data is RingCore data and RingCore Wallet data has same App user Wallet data
          */
-        fun signing(context: Context, hrChallenge: RingOfRingsMFAChallengeInterface, autoDismiss: Boolean=false, afterDiscovered: (Boolean) -> Boolean) {
+        fun signing(context: Context, challengeData: RingOfRingsMFAChallengeInterface, autoDismiss: Boolean=false, afterDiscovered: (Boolean) -> Boolean) {
             val mfaData: MutableList<RingOfRingsMFAChallengeInterface> = mutableListOf()
             // AES Type
-            mfaData.add(hrChallenge)
+            mfaData.add(challengeData)
             RingOfRingsMFA.initializeRingOfRingsMFA(mfaData= mfaData.toList())
 
             fun onDiscovered(dialog: Dialog?, response: MFAChallengeResponse?) {
@@ -267,7 +268,7 @@ class RingCore {
         /**
          * transaction with MFA UI
          */
-        fun transactionTokenWithMFA(context: Context) {
+        fun transactionTokenWithMFA(context: Context, buildChallengeData: (RingCryptoResponse?) -> RingOfRingsMFAChallengeInterface?) {
             if(getAlchemyKey(context) == null) {
                 showToast(context, "Alchemy key error")
                 return
@@ -288,7 +289,13 @@ class RingCore {
                     showToast(context, "toAddress is empty")
                     return
                 }
-                transactionToken(context, toAddress, amount, defaultGasPrice)
+
+                val challengeData = buildChallengeData(getWalletData())
+                if(challengeData == null) {
+                    showToast(context, "build Challenge Data is Failed")
+                    return
+                }
+                transactionToken(context, toAddress, amount, challengeData = challengeData, defaultGasPrice)
             }
 
             CryptoUtil.showTransactionTokenDialog(activity = context as Activity, eventListener = :: inputCompletedListener)
@@ -298,39 +305,51 @@ class RingCore {
          * transactionToken
          * If you want to make MFA UI yourself. use this function
          */
-        fun transactionToken(context: Context, toAddress: String, amount: BigInteger, defaultGasPrice: BigDecimal = AlchemyApi.DEFAULT_GAS_PRICE) {
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val function = Function(
-                        "transfer",
-                        listOf<Type<*>>(org.web3j.abi.datatypes.Address(toAddress), Uint256(amount)),
-                        listOf<TypeReference<*>>()
-                    )
-                    val credentials = Credentials.create(getWalletData()!!.getPrivateKey())
-                    val encodedFunction = FunctionEncoder.encode(function)
-                    val web3j = AlchemyApi.getWeb3j(getAlchemyKey(context)!!)
-                    val transactionManager = RawTransactionManager(
-                        web3j, credentials, AlchemyApi.getChainId()
-                    )
+        fun transactionToken(
+            context: Context,
+            toAddress: String,
+            amount: BigInteger,
+            challengeData: RingOfRingsMFAChallengeInterface,
+            defaultGasPrice: BigDecimal = AlchemyApi.DEFAULT_GAS_PRICE) {
 
-                    val gasPrice = Convert.toWei(defaultGasPrice, Convert.Unit.GWEI).toBigInteger()
-                    val gasLimit = BigInteger.valueOf(60000)
+            fun afterDiscovered(success: Boolean): Boolean {
+                if(success) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val function = Function(
+                                "transfer",
+                                listOf<Type<*>>(org.web3j.abi.datatypes.Address(toAddress), Uint256(amount)),
+                                listOf<TypeReference<*>>()
+                            )
+                            val credentials = Credentials.create(getWalletData()!!.getPrivateKey())
+                            val encodedFunction = FunctionEncoder.encode(function)
+                            val web3j = AlchemyApi.getWeb3j(getAlchemyKey(context)!!)
+                            val transactionManager = RawTransactionManager(
+                                web3j, credentials, AlchemyApi.getChainId()
+                            )
 
-//                BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value)
-                    val hash = transactionManager.sendTransaction(
-                        gasPrice,
-                        gasLimit,
-                        toAddress,
-                        encodedFunction,
-                        Convert.toWei(BigDecimal(amount), Convert.Unit.GWEI).toBigInteger()
-                    ).transactionHash
+                            val gasPrice = Convert.toWei(defaultGasPrice, Convert.Unit.GWEI).toBigInteger()
+                            val gasLimit = BigInteger.valueOf(60000)
 
-                    showToast(context, "transaction Success.\nHash: $hash")
-                    Log.d("transaction hash", "Hash: $hash")
-                } catch (e: Exception) {
-                    Log.e("transactionToken", "e: $e")
+                            val hash = transactionManager.sendTransaction(
+                                gasPrice,
+                                gasLimit,
+                                toAddress,
+                                encodedFunction,
+                                Convert.toWei(BigDecimal(amount), Convert.Unit.GWEI).toBigInteger()
+                            ).transactionHash
+
+                            showToast(context, "transaction Success.\nHash: $hash")
+                            Log.d("transaction hash", "Hash: $hash")
+                        } catch (e: Exception) {
+                            Log.e("transactionToken", "e: $e")
+                        }
+                    }
                 }
+                return success
             }
+
+            signing(context, challengeData = challengeData, afterDiscovered = :: afterDiscovered, autoDismiss = true)
         }
 
         fun showToast(context: Context, text: String) {
