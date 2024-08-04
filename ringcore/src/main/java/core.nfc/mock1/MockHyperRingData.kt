@@ -1,7 +1,7 @@
-package com.hyperring.sdk.core.mock1
-import com.hyperring.sdk.core.nfc.HyperRingData
+package com.ringofrings.sdk.core.mock1
+import com.ringofrings.sdk.core.nfc.RingOfRingsData
 
-class MockHyperRingData(data: String) : HyperRingData(null) {
+class MockRingOfRingsData(data: String) : RingOfRingsData(null) {
     override fun encrypt(source: Any?): ByteArray {
         // Simulate encryption
         return source.toString().toByteArray()

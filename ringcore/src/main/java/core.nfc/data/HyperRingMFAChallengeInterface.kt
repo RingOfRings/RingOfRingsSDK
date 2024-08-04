@@ -1,9 +1,9 @@
-package com.hyperring.sdk.core.data
+package com.ringofrings.sdk.core.data
 
 /**
- * Default HyperRing MFA, Challenge Data Interface
+ * Default RingOfRings MFA, Challenge Data Interface
  */
-interface HyperRingMFAChallengeInterface : HyperRingDataInterface {
+interface RingOfRingsMFAChallengeInterface : RingOfRingsDataInterface {
     var isSuccess: Boolean?
 
     override var id: Long?
@@ -16,5 +16,5 @@ interface HyperRingMFAChallengeInterface : HyperRingDataInterface {
     /**
      * Parts you need to implement yourself (MFA Challenge)
      */
-    fun challenge(targetData: HyperRingDataInterface): MFAChallengeResponse
+    fun challenge(targetData: RingOfRingsDataInterface): MFAChallengeResponse
 }

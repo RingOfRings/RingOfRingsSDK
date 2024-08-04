@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.hyperring.ringofrings.core"
+    namespace = "com.ringofrings.ringofrings.core"
     compileSdk = 34
 
     defaultConfig {
-//        applicationId = "com.hyperring.ringofrings.core"
+//        applicationId = "com.ringofrings.ringofrings.core"
         minSdk = 28
 //        targetSdk = 34
 //        versionCode = 1
@@ -50,7 +50,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-//    implementation(libs.hyperring.core)
 //    implementation(libs.web3jcore)
 //    implementation(libs.bitcoinjCore)
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha03")

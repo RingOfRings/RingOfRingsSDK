@@ -1,4 +1,4 @@
-package com.hyperring.sdk.core.mock1
+package com.ringofrings.sdk.core.mock1
 
 
 enum class MockNFCStatus {

@@ -1,4 +1,4 @@
-package com.hyperring.sdk.core.mfa
+package com.ringofrings.sdk.core.mfa
 import android.app.Activity
 import android.app.Dialog
 import android.os.Handler
@@ -8,13 +8,13 @@ import android.view.Window
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.Toast
-import com.hyperring.ringofrings.core.R
-import com.hyperring.sdk.core.data.HyperRingDataInterface
-import com.hyperring.sdk.core.data.HyperRingMFAChallengeInterface
-import com.hyperring.sdk.core.data.MFAChallengeResponse
-import com.hyperring.sdk.core.nfc.HyperRingNFC
-import com.hyperring.sdk.core.nfc.HyperRingTag
-import com.hyperring.sdk.core.nfc.NFCStatus
+import com.ringofrings.ringofrings.core.R
+import com.ringofrings.sdk.core.data.RingOfRingsDataInterface
+import com.ringofrings.sdk.core.data.RingOfRingsMFAChallengeInterface
+import com.ringofrings.sdk.core.data.MFAChallengeResponse
+import com.ringofrings.sdk.core.nfc.RingOfRingsNFC
+import com.ringofrings.sdk.core.nfc.RingOfRingsTag
+import com.ringofrings.sdk.core.nfc.NFCStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -23,15 +23,15 @@ import kotlinx.coroutines.launch
 /**
  * jwt base demo
  */
-class HyperRingMFA {
+class RingOfRingsMFA {
     companion object {
-        //  MFA Data (key: HyperRingTagId, value: data)
-        private var mfaData: MutableMap<Long, HyperRingMFAChallengeInterface> = mutableMapOf()
+        //  MFA Data (key: RingOfRingsTagId, value: data)
+        private var mfaData: MutableMap<Long, RingOfRingsMFAChallengeInterface> = mutableMapOf()
 
         /**
-         * Init MFA MFAData (When veryfyHyperRingMFA, Using this MFA Data)
+         * Init MFA MFAData (When veryfyRingOfRingsMFA, Using this MFA Data)
          */
-        fun initializeHyperRingMFA(mfaData: List<HyperRingMFAChallengeInterface>): Boolean {
+        fun initializeRingOfRingsMFA(mfaData: List<RingOfRingsMFAChallengeInterface>): Boolean {
             try {
                 mfaData.forEach {
                     if(it.id != null) {
@@ -49,17 +49,17 @@ class HyperRingMFA {
         }
 
         /**
-         * Clear MFA data (if hyperRingIds item is exist)
-         * If @param hyperRingId is null, clear every MFA data
+         * Clear MFA data (if RingIds item is exist)
+         * If @param RingId is null, clear every MFA data
          * todo New Function. talk to manager
          *
-         * @param hyperRingId
+         * @param ringId
          */
-        fun clearMFAData(hyperRingIds: List<Long>?) {
-            if (hyperRingIds == null) {
+        fun clearMFAData(ringIds: List<Long>?) {
+            if (ringIds == null) {
                 mfaData.clear()
             }
-            hyperRingIds!!.forEach {
+            ringIds!!.forEach {
                 if (mfaData.containsKey(it)) {
                     mfaData.remove(it)
                 }
@@ -69,7 +69,7 @@ class HyperRingMFA {
         /**
          * Update MFA Data
          */
-        fun updateMFAData(mfaDataList: List<HyperRingMFAChallengeInterface>) {
+        fun updateMFAData(mfaDataList: List<RingOfRingsMFAChallengeInterface>) {
             mfaDataList.forEach {
                 if(it.id != null) {
                     mfaData[it.id!!] = it
@@ -78,9 +78,9 @@ class HyperRingMFA {
         }
 
         /**
-         * Compare HyperRingTag`s MFA Data and Saved MFA(from initializeHyperRingMFA function)
+         * Compare RingOfRingsTag`s MFA Data and Saved MFA(from initializeRingOfRingsMFA function)
          */
-        fun verifyHyperRingMFAAuthentication(response: MFAChallengeResponse?): Boolean {
+        fun verifyRingOfRingsMFAAuthentication(response: MFAChallengeResponse?): Boolean {
             if(response == null) {
                 return false
             }
@@ -113,7 +113,7 @@ class HyperRingMFA {
          * @param activity
          * @param onNFCDiscovered NFC onDiscovered Code. return Dialog, Response
          */
-        fun requestHyperRingMFAAuthentication(
+        fun requestRingOfRingsMFAAuthentication(
             activity: Activity,
             onNFCDiscovered: (Dialog?, MFAChallengeResponse?) -> Unit?,
             autoDismiss: Boolean = false
@@ -128,19 +128,19 @@ class HyperRingMFA {
             ) {
             var mfaChallengeResponse: MFAChallengeResponse? = null
 
-            HyperRingNFC.initializeHyperRingNFC(activity)
-            if (HyperRingNFC.getNFCStatus() == NFCStatus.NFC_UNSUPPORTED) {
-                throw HyperRingNFC.UnsupportedNFCException()
+            RingOfRingsNFC.initializeRingOfRingsNFC(activity)
+            if (RingOfRingsNFC.getNFCStatus() == NFCStatus.NFC_UNSUPPORTED) {
+                throw RingOfRingsNFC.UnsupportedNFCException()
             }
 
-            if (HyperRingNFC.getNFCStatus() == NFCStatus.NFC_DISABLED) {
+            if (RingOfRingsNFC.getNFCStatus() == NFCStatus.NFC_DISABLED) {
                 Toast.makeText(activity, "Please enable NFC", Toast.LENGTH_SHORT).show()
                 return
             }
 
             var dialog: Dialog? = null
 
-            fun onDiscovered(tag: HyperRingTag): HyperRingTag {
+            fun onDiscovered(tag: RingOfRingsTag): RingOfRingsTag {
                 mfaChallengeResponse = processMFAChallenge(tag.data)
                 eventListener(dialog, mfaChallengeResponse)
                 val image: ImageView? = dialog?.findViewById(R.id.image)
@@ -181,25 +181,25 @@ class HyperRingMFA {
                     dialog?.show()
                     dialog?.window?.setAttributes(lp)
                     dialog?.setOnDismissListener {
-                        HyperRingNFC.stopNFCTagPolling(activity)
+                        RingOfRingsNFC.stopNFCTagPolling(activity)
                     }
                 }
-                HyperRingNFC.startNFCTagPolling(activity, onDiscovered = ::onDiscovered)
+                RingOfRingsNFC.startNFCTagPolling(activity, onDiscovered = ::onDiscovered)
             }
         }
 
         /**
-         * Return challenge hyperRingData with mfaData[hyperRingData.id]
+         * Return challenge RingOfRingsData with mfaData[RingOfRingsData.id]
          */
-        private fun processMFAChallenge(hyperRingData: HyperRingDataInterface?): MFAChallengeResponse {
-            if(hyperRingData?.id != null && mfaData.containsKey(hyperRingData.id)) {
+        private fun processMFAChallenge(RingOfRingsData: RingOfRingsDataInterface?): MFAChallengeResponse {
+            if(RingOfRingsData?.id != null && mfaData.containsKey(RingOfRingsData.id)) {
                 try {
-                    return mfaData[hyperRingData.id]!!.challenge(hyperRingData)
+                    return mfaData[RingOfRingsData.id]!!.challenge(RingOfRingsData)
                 } catch (e: Exception) {
-                    Log.e("HyperRingMFA", "$e")
+                    Log.e("RingOfRingsMFA", "$e")
                 }
             }
-            return MFAChallengeResponse(hyperRingData!!.id, hyperRingData.data, isSuccess = false)
+            return MFAChallengeResponse(RingOfRingsData!!.id, RingOfRingsData.data, isSuccess = false)
         }
 
     }

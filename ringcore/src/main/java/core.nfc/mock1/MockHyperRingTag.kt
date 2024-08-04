@@ -1,17 +1,17 @@
-package com.hyperring.sdk.core.mock1
+package com.ringofrings.sdk.core.mock1
 
 import android.nfc.tech.Ndef
 
 
-class MockHyperRingTag {
-    private var data: MockHyperRingData = MockHyperRingData("Some data") // Use mock HyperRingData
+class MockRingOfRingsTag {
+    private var data: MockRingOfRingsData = MockRingOfRingsData("Some data") // Use mock RingOfRingsData
 
     val id: Long?
         get() {
             return data.id
         }
 
-    fun isHyperRingTag(): Boolean {
+    fun isRingOfRingsTag(): Boolean {
         // Simulate NFC tag checking
         return true // For mock purposes, always return true
     }

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.hyperring.ringofrings"
+    namespace = "com.ringofrings.ringofrings"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.hyperring.ringofrings"
+        applicationId = "com.ringofrings.ringofrings"
         minSdk = 28
         targetSdk = 34
         versionCode = 1
@@ -59,7 +59,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(libs.hyperring.core)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

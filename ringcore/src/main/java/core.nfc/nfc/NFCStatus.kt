@@ -1,4 +1,4 @@
-package com.hyperring.sdk.core.nfc
+package com.ringofrings.sdk.core.nfc
 
 enum class NFCStatus {
     NFC_ENABLED, // NFC on

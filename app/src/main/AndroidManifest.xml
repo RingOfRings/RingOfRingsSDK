@@ -15,7 +15,7 @@
         android:theme="@style/Theme.RingOfRings"
         tools:targetApi="34">
         <activity
-            android:name=".SplashActivity"
+            android:name="ringofrings.SplashActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.RingOfRings">
@@ -27,7 +27,7 @@
         </activity>
 
         <activity
-            android:name=".CryptoActivity"
+            android:name="ringofrings.CryptoActivity"
             android:theme="@style/Theme.RingOfRings">
         </activity>
     </application>

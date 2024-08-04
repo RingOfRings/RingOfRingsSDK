@@ -1,13 +1,12 @@
-package com.hyperring.sdk.core.data
+package com.ringofrings.sdk.core.data
 import android.nfc.NdefMessage
 import android.nfc.Tag
 import android.util.Log
-import com.hyperring.sdk.core.nfc.HyperRingTag
 
 /**
- * Default HyperRing Data Interface
+ * Default RingOfRings Data Interface
  */
-interface HyperRingDataNFCInterface : HyperRingDataInterface {
+interface RingOfRingsDataNFCInterface : RingOfRingsDataInterface {
     override var id: Long?
     override var data : String?
 

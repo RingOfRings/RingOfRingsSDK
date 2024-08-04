@@ -1,19 +1,19 @@
-package com.hyperring.sdk.core.nfc
+package com.ringofrings.sdk.core.nfc
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.Tag
 import android.util.Log
 import com.google.gson.Gson
-import com.hyperring.sdk.core.data.HyperRingDataNFCInterface
+import com.ringofrings.sdk.core.data.RingOfRingsDataNFCInterface
 import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 
 
 /**
  * Default Data class
- * HyperRingDataInterface contains default functions and variables
+ * RingOfRingsDataInterface contains default functions and variables
  */
-open class HyperRingData(tag: Tag?, override var id: Long? = null, override var data: String? = null) : HyperRingDataNFCInterface {
+open class RingOfRingsData(tag: Tag?, override var id: Long? = null, override var data: String? = null) : RingOfRingsDataNFCInterface {
     init {
         this.initData(tag)
     }
@@ -27,7 +27,7 @@ open class HyperRingData(tag: Tag?, override var id: Long? = null, override var 
             return
         }
         try {
-            val ndef = HyperRingTag.getNDEF(tag)
+            val ndef = RingOfRingsTag.getNDEF(tag)
             if (ndef != null) {
                 try {
                     ndef.connect()
@@ -37,39 +37,39 @@ open class HyperRingData(tag: Tag?, override var id: Long? = null, override var 
                             val payload = String(it.payload, StandardCharsets.UTF_8)
                             if (it.tnf == NdefRecord.TNF_UNKNOWN) {
                                 val jsonObject = JSONObject(payload)
-                                HyperRingNFC.logD("payload: ${payload}")
+                                RingOfRingsNFC.logD("payload: ${payload}")
                                 try {
                                     id = jsonObject.getLong("id")
                                 } catch (e: Exception) {
-                                    Log.e("HyperRingData", "ID not exist.")
+                                    Log.e("RingOfRingsData", "ID not exist.")
                                 }
                                 try {
                                     data = jsonObject.getString("data")
                                 } catch (e: Exception) {
-                                    Log.e("HyperRingData", "Data not exist.")
+                                    Log.e("RingOfRingsData", "Data not exist.")
                                 }
                             }
                         }
                     } else {
-                        HyperRingNFC.logD("no records")
+                        RingOfRingsNFC.logD("no records")
                     }
                 } catch (e: Exception) {
-                    Log.e("HyperRing", "ndef err:${e}")
+                    Log.e("RingOfRings", "ndef err:${e}")
 //                data = emptyJsonString()
-//                throw HyperRingDataInitFailed()
+//                throw RingOfRingsDataInitFailed()
                 } finally {
                     ndef.close()
                 }
             } else {
-                HyperRingNFC.logD("ndef is null")
+                RingOfRingsNFC.logD("ndef is null")
             }
         } catch (e: Exception) {
-            Log.e("HyperRing", "initData err:${e}")
+            Log.e("RingOfRings", "initData err:${e}")
         }
     }
 
     fun ndefMessageBody(): NdefMessage {
-        Log.d("HyperRingData", "ndefMessageBody")
+        Log.d("RingOfRingsData", "ndefMessageBody")
         return NdefMessage(
             NdefRecord(
                 NdefRecord.TNF_UNKNOWN,
@@ -82,29 +82,29 @@ open class HyperRingData(tag: Tag?, override var id: Long? = null, override var 
     }
 
     private fun payload(): ByteArray {
-        Log.d("HyperRingData", "payload(): $id, $data")
-        Log.d("HyperRingData", "payload(): ${gson.toJson(mapOf("id" to id, "data" to data)).toByteArray(Charsets.UTF_8)}")
+        Log.d("RingOfRingsData", "payload(): $id, $data")
+        Log.d("RingOfRingsData", "payload(): ${gson.toJson(mapOf("id" to id, "data" to data)).toByteArray(Charsets.UTF_8)}")
         return gson.toJson(mapOf("id" to id, "data" to data)).toByteArray(Charsets.UTF_8)
     }
 
 //    private fun fromJsonString(payload: String): IdData {
 //        var id: Long? = null
 //        var data: String? = null
-//        Log.d("HyperRingData", "fromJsonString: payload: ${payload}")
+//        Log.d("RingOfRingsData", "fromJsonString: payload: ${payload}")
 //
 //        try {
 //            val jsonObject = JSONObject(payload)
 //            id = jsonObject.getLong("id")
 //            var dataJson = jsonObject.getString("data")
-//            Log.d("HyperRingData", "data json:  ${dataJson}")
+//            Log.d("RingOfRingsData", "data json:  ${dataJson}")
 //        } catch (e: Exception) {
-//            Log.e("HyperRingData", "fromJsonString err: $e")
+//            Log.e("RingOfRingsData", "fromJsonString err: $e")
 //        }
 //        try {
-//            val model: HyperRingData = gson.fromJson(payload, HyperRingData::class.java)
+//            val model: RingOfRingsData = gson.fromJson(payload, RingOfRingsData::class.java)
 //            data = model.data
 //        } catch (e: Exception) {
-//            Log.e("HyperRingData", "Not matched data type")
+//            Log.e("RingOfRingsData", "Not matched data type")
 //        }
 //        return IdData(id, data)
 //    }
@@ -115,7 +115,7 @@ open class HyperRingData(tag: Tag?, override var id: Long? = null, override var 
      */
     override fun encrypt(source: Any?): ByteArray {
         val encrypted = source.toString().toByteArray()
-        Log.d("HyperRingData", "encrypted: $encrypted")
+        Log.d("RingOfRingsData", "encrypted: $encrypted")
         this.data = String(encrypted)
         return encrypted
     }
@@ -126,7 +126,7 @@ open class HyperRingData(tag: Tag?, override var id: Long? = null, override var 
      */
     override fun decrypt(source: String?): String {
         val decrypted = source.toString()
-        Log.d("HyperRingData", "decrypted: $decrypted")
+        Log.d("RingOfRingsData", "decrypted: $decrypted")
         return decrypted
     }
 
@@ -141,15 +141,15 @@ open class HyperRingData(tag: Tag?, override var id: Long? = null, override var 
          * dataMap example = {"name": "John doe",  "age": 20}
          * {"id": n?, "data": encryptedString }
          */
-        fun createData(id: Long, dataMap: Map<String, Any>): HyperRingData {
-            val hyperRingData = HyperRingData(null, id, null)
+        fun createData(id: Long, dataMap: Map<String, Any>): RingOfRingsData {
+            val RingOfRingsData = RingOfRingsData(null, id, null)
             try {
                 val jsonStr = jsonStringFromMap(dataMap)
-                hyperRingData.encrypt(jsonStr)
+                RingOfRingsData.encrypt(jsonStr)
             } catch (e: Exception) {
-                Log.e("HyperRingData", e.toString())
+                Log.e("RingOfRingsData", e.toString())
             }
-            return hyperRingData
+            return RingOfRingsData
         }
     }
 }

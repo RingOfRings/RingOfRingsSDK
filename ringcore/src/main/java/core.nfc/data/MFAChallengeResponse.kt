@@ -1,6 +1,6 @@
-package com.hyperring.sdk.core.data
+package com.ringofrings.sdk.core.data
 
-class MFAChallengeResponse(override var id: Long?, override var data: String?, override var isSuccess: Boolean?) : HyperRingMFAChallengeInterface {
+class MFAChallengeResponse(override var id: Long?, override var data: String?, override var isSuccess: Boolean?) : RingOfRingsMFAChallengeInterface {
     override fun encrypt(source: Any?): ByteArray {
         TODO("JWT")
     }
@@ -9,7 +9,7 @@ class MFAChallengeResponse(override var id: Long?, override var data: String?, o
         TODO("JWT")
     }
 
-    override fun challenge(targetData: HyperRingDataInterface): MFAChallengeResponse {
+    override fun challenge(targetData: RingOfRingsDataInterface): MFAChallengeResponse {
         TODO("Not yet implemented")
     }
 }

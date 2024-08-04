@@ -1,21 +1,21 @@
-package com.hyperring.sdk.core.mock1
+package com.ringofrings.sdk.core.mock1
 import android.app.Activity
 import android.content.Context
 import android.util.Log
 
-class MockHyperRingNFC {
+class MockRingOfRingsNFC {
     companion object {
         private var initialized = false
         var isPolling: Boolean = false // Polling status
 
         /**
-         * Initialized Mock HyperRingNFC
+         * Initialized Mock RingOfRingsNFC
          */
-       /* fun initializeMockHyperRingNFC(context: Context) {
+       /* fun initializeMockRingOfRingsNFC(context: Context) {
             initialized = true
         }*/
 
-        fun initializeMockHyperRingNFC(context: Context?) {
+        fun initializeMockRingOfRingsNFC(context: Context?) {
             initialized = context != null
         }
 
@@ -23,7 +23,7 @@ class MockHyperRingNFC {
          * Get current NFC status
          *
          * @return NFCStatus
-         * @exception NeedInitializeException If not initialized HyperRingNFC
+         * @exception NeedInitializeException If not initialized RingOfRingsNFC
          */
         fun getNFCStatus(): MockNFCStatus {
             return if (initialized) {
@@ -38,12 +38,12 @@ class MockHyperRingNFC {
          * @param activity NFC adapter need Android Activity
          * @param onDiscovered When NFC tagged. return tag data
          */
-        fun startNFCTagPolling(activity: Activity, onDiscovered: (MockHyperRingTag) -> MockHyperRingTag) {
+        fun startNFCTagPolling(activity: Activity, onDiscovered: (MockRingOfRingsTag) -> MockRingOfRingsTag) {
             if (getNFCStatus() == MockNFCStatus.NFC_ENABLED) {
                 isPolling = true
                 logD("Start NFC Polling.")
                 // Simulate NFC tag discovery
-                val mockTag = MockHyperRingTag() // Create a mock tag
+                val mockTag = MockRingOfRingsTag() // Create a mock tag
                 onDiscovered(mockTag) // Simulate tag discovery
             }
         }
@@ -60,7 +60,7 @@ class MockHyperRingNFC {
         /**
          * Mock Write function
          */
-        fun write(hyperRingTagId: Long?, hyperRingTag: MockHyperRingTag, hyperRingData: MockHyperRingData): Boolean {
+        fun write(RingOfRingsTagId: Long?, RingOfRingsTag: MockRingOfRingsTag, RingOfRingsData: MockRingOfRingsData): Boolean {
             // Simulate writing to NFC tag
             logD("[Mock Write] success.")
             return true
@@ -69,16 +69,16 @@ class MockHyperRingNFC {
         /**
          * Mock Read function
          */
-        fun read(hyperRingTagId: Long?, hyperRingTag: MockHyperRingTag): MockHyperRingTag? {
+        fun read(RingOfRingsTagId: Long?, RingOfRingsTag: MockRingOfRingsTag): MockRingOfRingsTag? {
             // Simulate reading from NFC tag
-            return hyperRingTag
+            return RingOfRingsTag
         }
 
         /**
          * Mock Logger
          */
         fun logD(text: String) {
-            Log.d("MockHyperRingNFC", "log: $text")
+            Log.d("MockRingOfRingsNFC", "log: $text")
         }
     }
 }

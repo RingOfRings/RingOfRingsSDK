@@ -1,29 +1,29 @@
-package com.hyperring.sdk.core.nfc
+package com.ringofrings.sdk.core.nfc
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.Ndef
 import android.util.Log
 
 /**
- * HyperRingData
+ * RingOfRingsData
  * data structure
  *     NDEFRecord
  *     - Json
  *     {
- *         "id": HyperRingTadId
+ *         "id": RingOfRingsTadId
  *         "data": encrypted or original jsonStringData
  *     }
  * @param tag NFC Tag
- * @param hyperRingTagId hyperRing`s Tag ID - if null, not initialized NFC Card
+ * @param RingOfRingsTagId RingOfRings`s Tag ID - if null, not initialized NFC Card
  */
-open class HyperRingTag(private var tag: Tag) {
-    var data: HyperRingData = HyperRingData(tag)
+open class RingOfRingsTag(private var tag: Tag) {
+    var data: RingOfRingsData = RingOfRingsData(tag)
     val id: Long?
         get() {
             return data.id
         }
 
-    fun isHyperRingTag(): Boolean {
+    fun isRingOfRingsTag(): Boolean {
             return isNFCA() && isNDEF()
         }
 
@@ -49,7 +49,7 @@ open class HyperRingTag(private var tag: Tag) {
                     return Ndef.get(tag)
                 }
             }catch (e: Exception) {
-                Log.e("HyperRingData", "getNDEF"+e.toString())
+                Log.e("RingOfRingsData", "getNDEF"+e.toString())
             }
             return null
         }
@@ -58,13 +58,13 @@ open class HyperRingTag(private var tag: Tag) {
             return tag.techList.contains("android.nfc.tech.Ndef")
             //todo check it
 //        try {
-//            Log.d("HyperRingData", "isNDEF tag id: ${tag.id}")
+//            Log.d("RingOfRingsData", "isNDEF tag id: ${tag.id}")
 //            val formatableTag : NdefFormatable = NdefFormatable.get(tag)
 //            formatableTag.connect()
 //            formatableTag.format(emptyMessage())
 //            formatableTag.close()
 //        }catch (e: Exception) {
-//            Log.e("HyperRingData", "isNDEF: "+e.toString())
+//            Log.e("RingOfRingsData", "isNDEF: "+e.toString())
 //        }
         }
 

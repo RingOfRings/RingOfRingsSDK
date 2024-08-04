@@ -1,20 +1,20 @@
-package com.hyperring.sdk.core.nfc
+package com.ringofrings.sdk.core.nfc
 import android.app.Activity
 import android.content.Context
 import android.nfc.NfcAdapter
 import android.util.Log
-import com.hyperring.sdk.core.data.HyperRingDataNFCInterface
+import com.ringofrings.sdk.core.data.RingOfRingsDataNFCInterface
 
-class HyperRingNFC {
+class RingOfRingsNFC {
     companion object {
         private var initialized = false
         private var adapter: NfcAdapter? = null
         var isPolling: Boolean = false // Polling status
 
         /**
-         * Initialized HyperRingNFC
+         * Initialized RingOfRingsNFC
          */
-        fun initializeHyperRingNFC(context: Context) {
+        fun initializeRingOfRingsNFC(context: Context) {
             initialized = true
             adapter = NfcAdapter.getDefaultAdapter(context)
         }
@@ -23,7 +23,7 @@ class HyperRingNFC {
          * Get current NFC status
          *
          * @return NFCStatus
-         * @exception NeedInitializeException If not initialized HyperRingNFC
+         * @exception NeedInitializeException If not initialized RingOfRingsNFC
          */
         fun getNFCStatus(): NFCStatus {
             var status = NFCStatus.NFC_UNSUPPORTED
@@ -59,13 +59,13 @@ class HyperRingNFC {
          * @param activity NFC adapter need Android Activity
          * @param onDiscovered When NFC tagged. return tag data
          */
-        fun startNFCTagPolling(activity: Activity, onDiscovered: (HyperRingTag) -> HyperRingTag ) {
+        fun startNFCTagPolling(activity: Activity, onDiscovered: (RingOfRingsTag) -> RingOfRingsTag ) {
             if(getNFCStatus() == NFCStatus.NFC_ENABLED) {
                 logD( "Start NFC Polling.")
                 adapter?.enableReaderMode(activity, {
-                    val scannedHyperRingTag = HyperRingTag(it)
-                    onDiscovered(scannedHyperRingTag)
-                }, HyperRingTag.flags, null)
+                    val scannedRingOfRingsTag = RingOfRingsTag(it)
+                    onDiscovered(scannedRingOfRingsTag)
+                }, RingOfRingsTag.flags, null)
             }
         }
 
@@ -81,36 +81,36 @@ class HyperRingNFC {
         }
 
         /**
-         * Write data to HyperRingTag
-         * If hyperRingTagId is null, write data to Regardless of HyperRing iD
-         * else hyperRingTagId has ID, write data to HyperRing with only the same HyperRing ID
+         * Write data to RingOfRingsTag
+         * If RingOfRingsTagId is null, write data to Regardless of RingOfRings iD
+         * else RingOfRingsTagId has ID, write data to RingOfRings with only the same Ring ID
          *
-         * @param hyperRingTagId HyperRing tag ID
-         * @param hyperRingTag HyperRing data.
-         * @param hyperRingData: HyperRingDataInterface
+         * @param RingOfRingsTagId RingOfRings tag ID
+         * @param RingOfRingsTag RingOfRings data.
+         * @param RingOfRingsData: RingOfRingsDataInterface
          */
-        fun write(hyperRingTagId: Long?, hyperRingTag: HyperRingTag, hyperRingData: HyperRingData): Boolean {
-            if(hyperRingTagId == null) {
-                // Write data to Any HyperRing NFC Device
-            } else if(hyperRingTag.id != hyperRingTagId) {
-                // Not matched HyperRingTagId (Other HyperRingTag Tagged)
+        fun write(RingOfRingsTagId: Long?, RingOfRingsTag: RingOfRingsTag, RingOfRingsData: RingOfRingsData): Boolean {
+            if(RingOfRingsTagId == null) {
+                // Write data to Any RingOfRings NFC Device
+            } else if(RingOfRingsTag.id != RingOfRingsTagId) {
+                // Not matched RingOfRingsTagId (Other RingOfRingsTag Tagged)
                 logD("[Write] tag id is not matched.")
                 return false
             }
 
-            if(hyperRingTag.isHyperRingTag()) {
-                val ndef = hyperRingTag.getNDEF()
+            if(RingOfRingsTag.isRingOfRingsTag()) {
+                val ndef = RingOfRingsTag.getNDEF()
                 if (ndef != null) {
                     if(!ndef.isWritable) {
                         throw ReadOnlyNFCException()
                     }
-                    if(ndef.maxSize <= hyperRingData.ndefMessageBody().toByteArray().size) {
-                        throw OverMaxSizeMsgException(ndef.maxSize, hyperRingData.ndefMessageBody().toByteArray().size)
+                    if(ndef.maxSize <= RingOfRingsData.ndefMessageBody().toByteArray().size) {
+                        throw OverMaxSizeMsgException(ndef.maxSize, RingOfRingsData.ndefMessageBody().toByteArray().size)
                     }
                     try {
                         ndef.connect()
-                        ndef.writeNdefMessage(hyperRingData.ndefMessageBody())
-                        logD("[Write] success. [${hyperRingData.ndefMessageBody().records.get(0).tnf}] [${hyperRingData.ndefMessageBody().records.get(0).payload}]")
+                        ndef.writeNdefMessage(RingOfRingsData.ndefMessageBody())
+                        logD("[Write] success. [${RingOfRingsData.ndefMessageBody().records.get(0).tnf}] [${RingOfRingsData.ndefMessageBody().records.get(0).payload}]")
                     } catch (e: Exception) {
                         logE("[Write] exception: ${e}")
                     } finally {
@@ -125,33 +125,33 @@ class HyperRingNFC {
         }
 
         /***
-         * If HyperRingTagId is same HyperRingData`s inner hyperRingTagId return Data
+         * If RingOfRingsTagId is same RingOfRingsData`s inner RingOfRingsTagId return Data
          *
-         * @param hyperRingTagId
-         * @param hyperRingTag
+         * @param RingOfRingsTagId
+         * @param RingOfRingsTag
          */
-        fun read(hyperRingTagId: Long?, hyperRingTag: HyperRingTag): HyperRingTag? {
-            if(hyperRingTagId == null) {
-                return hyperRingTag
-            } else if(hyperRingTag.id == hyperRingTagId) {
-                return hyperRingTag
+        fun read(RingOfRingsTagId: Long?, RingOfRingsTag: RingOfRingsTag): RingOfRingsTag? {
+            if(RingOfRingsTagId == null) {
+                return RingOfRingsTag
+            } else if(RingOfRingsTag.id == RingOfRingsTagId) {
+                return RingOfRingsTag
             }
             return null
         }
 
         /**
-         * HyperRingNFC Logger
+         * RingOfRingsNFC Logger
          */
         fun logD(text: String) {
-            Log.d("HyperRingNFC", "log: $text")
+            Log.d("RingOfRingsNFC", "log: $text")
         }
 
         private fun logE(text: String) {
-            Log.e("HyperRingNFC", "exception: $text")
+            Log.e("RingOfRingsNFC", "exception: $text")
         }
     }
 
-    class NeedInitializeException: Exception("Need HyperRing NFC Initialize")
+    class NeedInitializeException: Exception("Need RingOfRings NFC Initialize")
     class UnsupportedNFCException : Exception("Unsupported NFC Exception")
     class ReadOnlyNFCException : Exception("Read only NFC.")
     class OverMaxSizeMsgException(maxSize: Int, msgSize:Int) : Exception("NFC maxSize is $maxSize, Message maxSize is $msgSize.")
