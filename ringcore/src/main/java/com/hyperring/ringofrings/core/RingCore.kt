@@ -154,22 +154,22 @@ class RingCore {
         /**
          * To NFC Tag, Set wallet data
          */
-        fun setWalletDataToRing(context: Context, hrData: HyperRingData){
+        fun setWalletDataToRing(context: Context, hrData: HyperRingData, onDiscovered: (HyperRingTag) -> HyperRingTag){
             val walletData = getWalletData()
             if(walletData == null) {
                 showToast(context, "No Wallet Data")
                 return
             }
             Log.d("RingCore", "${walletData.getMnemonic()}")
-            fun onDiscovered(tag: HyperRingTag): HyperRingTag {
-                Log.d("onDiscovered", "$tag / ${tag.data} / ${tag.data.data}")
-                showToast(context, "success")
-                val tagId = null
-                HyperRingNFC.write(tagId, tag, hrData)
-                return tag
-            }
+//            fun onDiscovered(tag: HyperRingTag): HyperRingTag {
+//                Log.d("onDiscovered", "$tag / ${tag.data} / ${tag.data.data}")
+//                showToast(context, "success")
+//                val tagId = null
+//                HyperRingNFC.write(tagId, tag, hrData)
+//                return tag
+//            }
             stopPollingRingWalletData(context)
-            NFCUtil.startPolling(context, onDiscovered = ::onDiscovered)
+            NFCUtil.startPolling(context, onDiscovered = onDiscovered)
         }
 
         /**

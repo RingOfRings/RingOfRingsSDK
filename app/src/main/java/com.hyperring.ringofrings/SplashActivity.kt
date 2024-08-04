@@ -55,6 +55,7 @@ import com.hyperring.ringofrings.core.utils.nfc.NFCUtil
 import com.hyperring.ringofrings.data.mfa.AESMFAChallengeData
 import com.hyperring.ringofrings.data.nfc.AESHRData
 import com.hyperring.ringofrings.ui.theme.RingOfRingsTheme
+import com.hyperring.sdk.core.nfc.HyperRingNFC
 import com.hyperring.sdk.core.nfc.HyperRingTag
 import com.hyperring.sdk.core.nfc.NFCStatus
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -164,7 +165,7 @@ fun TextEditBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                     }
                 }
             }
-    }
+        }
     }
 }
 
@@ -174,8 +175,11 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
     var wallet = viewModel.wallet.collectAsState()
     var showImportWalletDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    val lastLogText = viewModel.lastLogText.collectAsState()
 
-    Column(modifier = modifier.padding(10.dp).verticalScroll(scrollState)) {
+    Column(modifier = modifier
+        .padding(10.dp)
+        .verticalScroll(scrollState)) {
         Box(modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .background(Color(0xFF66BB6A))
@@ -306,7 +310,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
             .background(Color(0xFF33AA8A))
             .padding(10.dp)
             .fillMaxWidth()
-            .height((115.dp))) {
+            .height((195.dp))) {
             val context = LocalContext.current
             val activity = context as? Activity
 
@@ -361,6 +365,21 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         }
                     }
                 }
+                Row{
+                    Box(
+                        modifier = Modifier
+                            .height(90.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xEE55CC7A))
+                            .padding(5.dp)
+                        ,
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = lastLogText.value?:"empty")
+                    }
+                }
+                Box(modifier = modifier.height(3.dp))
                 Row {
                     Box(
                         modifier = Modifier
@@ -371,7 +390,8 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         FilledTonalButton(
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
-                                writeWalletToTag(context)
+                                viewModel.updateLastLog("Please start Tag polling for write")
+                                writeWalletToTag(context, viewModel)
                             }) {
                             Text("Write wallet data to TAG", textAlign = TextAlign.Center)
                         }
@@ -386,7 +406,18 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         FilledTonalButton(
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
-                                readWalletFromTag(context)
+                                fun readTag(tag: HyperRingTag): HyperRingTag {
+                                    Log.d("readTag", "tag: ${tag.isHyperRingTag()}")
+                                    Log.d("readTag", "tag: ${tag.id}")
+                                    Log.d("readTag", "tag: ${tag.data.ndefMessageBody()}")
+                                    Log.d("readTag", "tag: ${tag.data.data}")
+                                    Log.d("readTag", "decrypt: ${AESHRData.decrypt(tag.data.data)}")
+                                    showToast(context, "${AESHRData.decrypt(tag.data.data)}")
+                                    viewModel.updateLastLog("${AESHRData.decrypt(tag.data.data)}")
+                                    return tag
+                                }
+                                viewModel.updateLastLog("Please start Tag polling for read")
+                                readWalletFromTag(context, readTag = ::readTag)
                             }) {
                             Text("read Wallet data from TAG", textAlign = TextAlign.Center)
                         }
@@ -488,26 +519,32 @@ fun WalletImportDialog(onDismiss: () -> Unit) {
     )
 }
 
-fun writeWalletToTag(context: Context) {
+fun writeWalletToTag(context: Context, viewModel: SplashViewModel) {
     if(RingCore.getWalletData() == null) {
         showToast(context, "Wallet not exist")
         return
     }
     val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
-    RingCore.setWalletDataToRing(context, hrData)
-}
 
-fun readWalletFromTag(context: Context) {
-    fun readTag(tag: HyperRingTag): HyperRingTag {
-        Log.d("readTag", "tag: ${tag.isHyperRingTag()}")
-        Log.d("readTag", "tag: ${tag.id}")
-        Log.d("readTag", "tag: ${tag.data.ndefMessageBody()}")
-        Log.d("readTag", "tag: ${tag.data.data}")
-        Log.d("readTag", "decrypt: ${AESHRData.decrypt(tag.data.data)}")
-        showToast(context, "${AESHRData.decrypt(tag.data.data)}")
+    fun onDiscovered(tag: HyperRingTag): HyperRingTag {
+        Log.d("onDiscovered", "$tag / ${tag.data} / ${tag.data.data}")
+        val tagId = null
+        HyperRingNFC.write(tagId, tag, hrData).let {
+            if(it) {
+                showToast(context, "success")
+                viewModel.updateLastLog("id:$tagId, data:${RingCore.getWalletData()?.getPrivateKey()}")
+            } else {
+                showToast(context, "try again")
+            }
+        }
         return tag
     }
-    RingCore.startPollingRingWalletData(context, onDiscovered = ::readTag)
+
+    RingCore.setWalletDataToRing(context, hrData, onDiscovered = :: onDiscovered)
+}
+
+fun readWalletFromTag(context: Context, readTag: (HyperRingTag) -> HyperRingTag) {
+    RingCore.startPollingRingWalletData(context, onDiscovered = readTag)
 }
 
 data class SplashUiState(
@@ -525,6 +562,9 @@ class SplashViewModel : ViewModel() {
 
     private val _alchemyKey = MutableStateFlow<String?>(null)
     val alchemyKey: StateFlow<String?> = _alchemyKey
+
+    private val _lastLogText = MutableStateFlow<String?>(null)
+    val lastLogText: StateFlow<String?> = _lastLogText
 
     init {
         fetchWallet()
@@ -594,5 +634,9 @@ class SplashViewModel : ViewModel() {
 
     fun refreshWallet() {
         _wallet.value = RingCore.getWalletData()
+    }
+
+    fun updateLastLog(text: String) {
+        _lastLogText.value = text
     }
 }

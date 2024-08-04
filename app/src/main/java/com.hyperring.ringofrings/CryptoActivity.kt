@@ -130,9 +130,9 @@ fun CryptoList(viewModel: CryptoViewModel) {
                 .padding(10.dp)
                 .fillMaxWidth()
                 .clickable {
-                    val intent: Intent = Intent(activity, CryptoActivity::class.java)
-                    intent.putExtra("address", tokenBalances.value.get(item).contractAddress)
-                    activity?.startActivity(intent)
+//                    val intent: Intent = Intent(activity, CryptoActivity::class.java)
+//                    intent.putExtra("address", tokenBalances.value.get(item).contractAddress)
+//                    activity?.startActivity(intent)
                 },
                 ) {
                 Column {
