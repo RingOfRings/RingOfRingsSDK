@@ -459,7 +459,7 @@ fun WalletImportDialog(onDismiss: () -> Unit) {
         confirmButton = {
             Button(
                 onClick = {
-                    RingCore.importWalletAddress(context, walletInput).let {
+                    RingCore.importWallet(context, walletInput).let {
                         if(it?.getAddress() != null) {
                             walletAddress = it.getAddress()!!
                             RingCore.setWalletData(context, it)

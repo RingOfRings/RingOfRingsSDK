@@ -305,7 +305,7 @@ class CryptoViewModel : ViewModel() {
             try {
                 withContext(Dispatchers.IO) {
                     // 네트워크 요청을 수행합니다.
-                    var result = RingCore.getMyTokens(context, address)
+                    var result = RingCore.getTokenBalances(context, address)
                     uiState.value.tokens = result
 //                    _items.value = result?.result?.tokenBalances?: emptyList()
                     _items.value = result?.result?.tokenBalances?: emptyList()

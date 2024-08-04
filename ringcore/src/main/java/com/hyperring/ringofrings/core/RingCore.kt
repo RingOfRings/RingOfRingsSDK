@@ -119,9 +119,9 @@ class RingCore {
         }
 
         /**
-         * Import WalletAddress (using private key)
+         * Import Wallet (using private key)
          */
-        fun importWalletAddress(context: Context, privateKey: String): RingCryptoResponse? {
+        fun importWallet(context: Context, privateKey: String): RingCryptoResponse? {
             var response: RingCryptoResponse? = null
             try {
                 val credentials: Credentials = Credentials.create(privateKey)
@@ -192,7 +192,7 @@ class RingCore {
          * get address token info.
          * else call using wallet address
          */
-        fun getMyTokens(context: Context, address: String?): TokenBalances? {
+        fun getTokenBalances(context: Context, address: String?): TokenBalances? {
             if(getWalletData() == null) {
                 return null
             }
