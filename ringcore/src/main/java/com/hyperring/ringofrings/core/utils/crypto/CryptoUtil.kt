@@ -127,10 +127,9 @@ class CryptoUtil {
         }
 
         fun setWalletData(context: Context, data: RingCryptoResponse?) {
-            if(data == null) {
-                RingCore.sharedPrefs!!.edit().clear().apply()
-                return
-            }
+//            if(data == null) {
+//                RingCore.sharedPrefs!!.edit().clear().apply()
+//            }
             RingCore.initSharedPrefs(context).let {
                 RingCore.sharedPrefs!!.edit().putString(PUBLIC_KEY, data?.getPublicKey()).apply()
                 RingCore.sharedPrefs!!.edit().putString(PRIVATE_KEY, data?.getPrivateKey()).apply()

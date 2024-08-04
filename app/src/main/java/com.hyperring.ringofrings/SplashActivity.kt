@@ -310,7 +310,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
             .background(Color(0xFF33AA8A))
             .padding(10.dp)
             .fillMaxWidth()
-            .height((195.dp))) {
+            .height((295.dp))) {
             val context = LocalContext.current
             val activity = context as? Activity
 
@@ -368,7 +368,7 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                 Row{
                     Box(
                         modifier = Modifier
-                            .height(90.dp)
+                            .height(200.dp)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .background(Color(0xEE55CC7A))
@@ -390,7 +390,6 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
                         FilledTonalButton(
                             modifier = modifier.fillMaxWidth(),
                             onClick = {
-                                viewModel.updateLastLog("Please start Tag polling for write")
                                 writeWalletToTag(context, viewModel)
                             }) {
                             Text("Write wallet data to TAG", textAlign = TextAlign.Center)
@@ -522,8 +521,11 @@ fun WalletImportDialog(onDismiss: () -> Unit) {
 fun writeWalletToTag(context: Context, viewModel: SplashViewModel) {
     if(RingCore.getWalletData() == null) {
         showToast(context, "Wallet not exist")
+        viewModel.updateLastLog("Wallet not exist")
         return
     }
+    viewModel.updateLastLog("Please start Tag polling for write")
+    Log.d("writeWalletToTag", "walletData: ${RingCore.getWalletData()}")
     val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
 
     fun onDiscovered(tag: HyperRingTag): HyperRingTag {
