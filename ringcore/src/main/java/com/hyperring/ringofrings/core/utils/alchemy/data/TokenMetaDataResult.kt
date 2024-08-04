@@ -12,3 +12,9 @@ data class MetaDataDetailResult(
     val name: String?,
     val symbol: String?
 )
+
+data class TokenAmountResult(
+    val id: Int = 1,
+    val jsonrpc : String = "2.0",
+    val result: String,
+)

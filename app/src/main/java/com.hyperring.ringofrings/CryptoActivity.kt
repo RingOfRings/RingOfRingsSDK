@@ -19,14 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -43,6 +39,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import com.hyperring.ringofrings.core.RingCore
 import com.hyperring.ringofrings.core.RingCore.Companion.showToast
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenAmountResult
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalance
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalances
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetaDataResult
@@ -96,6 +93,7 @@ class CryptoActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column {
+//                        TotalETH(viewModel = cryptoViewModel)
                         CryptoList(viewModel = cryptoViewModel)
                     }
                 }
@@ -103,6 +101,17 @@ class CryptoActivity : ComponentActivity() {
         }
     }
 }
+
+//@Composable
+//fun TotalETH(viewModel: CryptoViewModel) {
+//    Box(modifier = Modifier
+//        .background(color = Color.LightGray)
+//        .clip(RoundedCornerShape(10.dp))
+//        .padding(10.dp)
+//    ) {
+//        BasicText(text = "TOTAL: ${getETHStr(RingCore..getAddress())} ETH}")
+//    }
+//}
 
 @Composable
 fun CryptoList(viewModel: CryptoViewModel) {
@@ -152,6 +161,8 @@ fun CryptoList(viewModel: CryptoViewModel) {
 @Composable
 fun CryptoDetailBox(modifier: Modifier = Modifier, viewModel: CryptoViewModel, address: String) {
     var metaDataDetail = viewModel.metaData.collectAsState()
+    var tokenAmountDetail = viewModel.tokenBalances.collectAsState()
+
 //    var metaDataDetail = remember { mutableStateOf(mapOf<String, TokenMetaDataResult>()) }
     val context = LocalContext.current
     val activity = context as? Activity
@@ -174,14 +185,38 @@ fun CryptoDetailBox(modifier: Modifier = Modifier, viewModel: CryptoViewModel, a
             ) {
                 Row() {
                     Text(
+                        text = "Amount: ${tokenAmountDetail.value[address]?.result?:"--"} wei",
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        style = TextStyle(fontSize = 14.sp),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+            Box(modifier = modifier.height(5.dp))
+            Box(
+                modifier = modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White)
+                    .padding(5.dp)
+                    .fillMaxWidth()
+//                    .height((25.dp))
+            ) {
+                Row() {
+                    Text(
                         text = "NAME: ${metaDataDetail.value[address]?.result?.name?:"--"}",
-                        modifier = modifier.fillMaxWidth().weight(1f),
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         style = TextStyle(fontSize = 14.sp),
                         textAlign = TextAlign.Center,
                     )
                     Text(
                         text = "Demicals: ${metaDataDetail.value[address]?.result?.decimals?:"--"}",
-                        modifier = modifier.fillMaxWidth().weight(1f),
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         style = TextStyle(fontSize = 14.sp),
                         textAlign = TextAlign.Center,
                     )
@@ -199,13 +234,17 @@ fun CryptoDetailBox(modifier: Modifier = Modifier, viewModel: CryptoViewModel, a
                 Row() {
                     Text(
                         text = "Logo: ${metaDataDetail.value[address]?.result?.logo?:"--"}",
-                        modifier = modifier.fillMaxWidth().weight(1f),
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         style = TextStyle(fontSize = 14.sp),
                         textAlign = TextAlign.Center,
                     )
                     Text(
                         text = "symbol: ${metaDataDetail.value[address]?.result?.symbol?:"--"}",
-                        modifier = modifier.fillMaxWidth().weight(1f),
+                        modifier = modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         style = TextStyle(fontSize = 14.sp),
                         textAlign = TextAlign.Center,
                     )
@@ -214,6 +253,20 @@ fun CryptoDetailBox(modifier: Modifier = Modifier, viewModel: CryptoViewModel, a
         }
     }
 }
+
+fun getETHStr(result: String?): String {
+    Log.d("getETHStr", "ethstr: $result")
+    if(result == null) {
+        return ""
+    }
+    val wei = BigInteger(result.substring(2), 16) // Hex to BigInteger
+    return weiToEth(wei).toString()
+}
+
+fun weiToEth(wei: BigInteger): BigDecimal {
+    return RingCore.weiToEth(wei)
+}
+
 
 fun getTokenAmount(tokenBalance: String): String {
     val decimalValue = BigInteger(tokenBalance.substring(2), 16)
@@ -225,6 +278,7 @@ fun getTokenAmount(tokenBalance: String): String {
 data class CryptoUiState(
     var tokens: TokenBalances? = null,
     var metaDataMap: MutableMap<String, TokenMetaDataResult?> = mutableMapOf(),
+    var tokenBalanceMap: MutableMap<String, TokenAmountResult?> = mutableMapOf(),
 ) {
 }
 
@@ -237,6 +291,9 @@ class CryptoViewModel : ViewModel() {
 
     private val _metaData = MutableStateFlow<Map<String, TokenMetaDataResult?>>(mapOf())
     val metaData: StateFlow<Map<String, TokenMetaDataResult?>> = _metaData
+
+    private val _tokenBalances = MutableStateFlow<Map<String, TokenAmountResult?>>(mapOf())
+    val tokenBalances: StateFlow<Map<String, TokenAmountResult?>> = _tokenBalances
 
     private fun getApiKey(context: Context): String {
         return RingCore.getAlchemyKey(context)!!
@@ -254,6 +311,7 @@ class CryptoViewModel : ViewModel() {
                     _items.value = result?.result?.tokenBalances?: emptyList()
                     _items.value.forEach {
                         fetchMetaData(context, it.contractAddress)
+                        fetchTokenAmount(context, it.contractAddress)
                     }
                 }
 
@@ -282,6 +340,24 @@ class CryptoViewModel : ViewModel() {
             } catch (e: Exception) {
                 // Handle the exception
                 Log.e("token","fetchMetaData ex: ${e.toString()}")
+            }
+        }
+    }
+
+    fun fetchTokenAmount(context: Context, address: String) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    var result = RingCore.getTokenBalance(context, address)
+                    uiState.value.tokenBalanceMap[address] = result
+                    _tokenBalances.value = _tokenBalances.value.toMutableMap().apply {
+                        put(address, result)
+                    }
+                    Log.d("token","fetchAmount($address): ${result?.result}")
+                }
+            } catch (e: Exception) {
+                // Handle the exception
+                Log.e("token","fetchAmount ex: ${e.toString()}")
             }
         }
     }

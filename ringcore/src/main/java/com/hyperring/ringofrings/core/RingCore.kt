@@ -12,6 +12,8 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.hyperring.ringofrings.core.utils.alchemy.AlchemyApi
 import com.hyperring.ringofrings.core.utils.alchemy.data.BalancesJsonBody
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenAmountResult
+import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalanceJsonBody
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetaDataResult
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenBalances
 import com.hyperring.ringofrings.core.utils.alchemy.data.TokenMetadataJsonBody
@@ -220,6 +222,18 @@ class RingCore {
         }
 
         /**
+         * get Token Balance amount
+         */
+        fun getTokenBalance(context: Context, address: String): TokenAmountResult? {
+            Log.d("getTokenBalance", "address: ${address}")
+            val params = listOf(address)
+            val jsonBody : TokenBalanceJsonBody = TokenBalanceJsonBody(params = params)
+            var result = AlchemyApi().service.getTokenBalance(getAlchemyKey(context), jsonBody).execute()
+            Log.d("getTokenBalance", "get balance: ${result.body()}")
+            return result.body()
+        }
+
+        /**
          * Signing
          * If scanned Tag`s data is RingCore data and RingCore Wallet data has same App user Wallet data
          */
@@ -324,6 +338,10 @@ class RingCore {
             val handler = Handler(Looper.getMainLooper())
             handler.postDelayed({
                 Toast.makeText(context, text, Toast.LENGTH_SHORT).show() }, 0)
+        }
+
+        fun weiToEth(wei: BigInteger): BigDecimal {
+            return Convert.fromWei(wei.toBigDecimal(), Convert.Unit.ETHER)
         }
     }
 }
