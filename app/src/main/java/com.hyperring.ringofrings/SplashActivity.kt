@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -171,8 +173,9 @@ fun SplashBox(modifier: Modifier = Modifier, viewModel: SplashViewModel) {
     val context = LocalContext.current
     var wallet = viewModel.wallet.collectAsState()
     var showImportWalletDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
-    Column(modifier = modifier.padding(10.dp)) {
+    Column(modifier = modifier.padding(10.dp).verticalScroll(scrollState)) {
         Box(modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .background(Color(0xFF66BB6A))
