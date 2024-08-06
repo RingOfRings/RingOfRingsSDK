@@ -2,7 +2,11 @@ plugins {
     id("com.android.library")
 //    alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    `maven-publish`
 }
+
+version = "1.0.0"
+group = "com.github.RingOfRings"
 
 android {
     namespace = "com.ringofrings.ringofrings.core"
