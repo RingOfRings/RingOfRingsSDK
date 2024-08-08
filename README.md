@@ -13,6 +13,7 @@ Add the following lines to the `dependencyResolutionManagement` section of your 
 
 minSdk = 28
 
+### groovy
 ```groovy
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -34,7 +35,7 @@ subprojects {
 }
 
 ```
-
+### kts
 ```kts
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -63,13 +64,13 @@ subprojects {
 ### Step 2: Add the library dependency
 Include the HyperRing Core Library in your module's `build.gradle` file:
 
-
+### groovy
 ```groovy
 dependencies {
     implementation 'com.github.RingOfRings:RingOfRingsSDK:TAG'
 }
 ```
-
+### kts
 ```kts
 dependencies {
     implementation("com.github.RingOfRings:RingOfRingsSDK:TAG")
