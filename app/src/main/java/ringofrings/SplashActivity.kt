@@ -440,7 +440,7 @@ fun transactionToken(context: Context) {
         if(ringCryptoResponse?.getPrivateKey() == null) {
             return null
         }
-        val data = AESHRData.createData(10L, ringCryptoResponse.getMnemonic(), ringCryptoResponse.getPrivateKey()!!)
+        val data = AESHRData.createData(10L, ringCryptoResponse.getPrivateKey()!!)
         val challengeData = AESMFAChallengeData(10L, data.data!!, null)
         return challengeData
     }
@@ -448,7 +448,7 @@ fun transactionToken(context: Context) {
 }
 
 fun signing(context: Context, afterDiscovered: (Boolean) -> Boolean) {
-    val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
+    val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getPrivateKey()!!)
     val challengeData = AESMFAChallengeData(10L, hrData.data!!, null)
     RingCore.signing(context, challengeData, afterDiscovered = afterDiscovered, autoDismiss = true)
 }
@@ -529,12 +529,11 @@ fun writeWalletToTag(context: Context, viewModel: SplashViewModel) {
     }
     viewModel.updateLastLog("Please start Tag polling for write")
     Log.d("writeWalletToTag", "walletData: ${RingCore.getWalletData()}")
-    val hrData = AESHRData.createData(10L, RingCore.getWalletData()!!.getMnemonic(), RingCore.getWalletData()!!.getPrivateKey()!!)
-
+    val hrData = AESHRData.createData(null, RingCore.getWalletData()!!.getPrivateKey()!!)
     fun onDiscovered(tag: RingOfRingsTag): RingOfRingsTag {
         Log.d("onDiscovered", "$tag / ${tag.data} / ${tag.data.data}")
         val tagId = null
-        RingOfRingsNFC.write(tagId, tag, hrData).let {
+        RingOfRingsNFC.write(null, tag, hrData).let {
             if(it) {
                 showToast(context, "success")
                 viewModel.updateLastLog("id:$tagId, data:${RingCore.getWalletData()?.getPrivateKey()}")
