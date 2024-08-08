@@ -5,8 +5,39 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.8"
+version = "1.0.9"
 group = "com.github.RingOfRings"
+
+
+publishing {
+    publications {
+        create<MavenPublication>("library") {
+//            from(components["java"])
+            groupId = "com.github.RingOfRings"
+            artifactId = "RingOfRingsSDK"
+            version = "1.0.9"
+            pom {
+                name = "RingOfRings Core Library"
+                description = "RingOfRings  core sdk library"
+                url = "https://github.com/RingOfRings/RingOfRingsSDK"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+            }
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = uri(layout.buildDirectory.dir("publishing-repository"))
+        }
+    }
+}
 
 android {
     namespace = "com.ringofrings.ringofrings.core"
@@ -19,20 +50,16 @@ android {
 
     defaultConfig {
         minSdk = 28
+
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
-        debug {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-            )
-        }
-
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
         }
     }
@@ -54,6 +81,8 @@ android {
         resources.excludes.apply {
             resources.excludes.add("META-INF/versions/**")
             resources.excludes.add("META-INF/**")
+            resources.excludes.add("META-INF/LICENSE.md")
+            resources.excludes.add("META-INF/LICENSE-notice.md")
         }
     }
 }
