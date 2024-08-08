@@ -11,3 +11,13 @@ buildscript {
         classpath (libs.android.maven.gradle.plugin)
     }
 }
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<ProcessResources> {
+    filesMatching("lint-resources.xml") {
+        exclude()
+    }
+}

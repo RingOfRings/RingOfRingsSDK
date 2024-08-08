@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.4"
+version = "1.0.5"
 group = "com.github.RingOfRings"
 
 android {
@@ -78,4 +78,14 @@ configurations.all {
     }
     // 필요한 경우 중복 모듈을 제외
     exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<ProcessResources> {
+    filesMatching("lint-resources.xml") {
+        exclude()
+    }
 }
