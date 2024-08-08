@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.ringofrings.ringofrings"
-    compileSdk = 34
+    compileSdk = 35
     lint {
         abortOnError = false
         checkReleaseBuilds = false
@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId = "com.ringofrings.ringofrings"
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
     }

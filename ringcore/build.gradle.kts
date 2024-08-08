@@ -5,12 +5,12 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.6"
+version = "1.0.7"
 group = "com.github.RingOfRings"
 
 android {
     namespace = "com.ringofrings.ringofrings.core"
-    compileSdk = 34
+    compileSdk = 35
     lint {
         abortOnError = false
         checkReleaseBuilds = false
