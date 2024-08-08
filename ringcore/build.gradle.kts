@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.3"
+version = "1.0.4"
 group = "com.github.RingOfRings"
 
 android {
@@ -13,6 +13,8 @@ android {
     compileSdk = 34
     lint {
         abortOnError = false
+        checkReleaseBuilds = false
+
     }
 
     defaultConfig {

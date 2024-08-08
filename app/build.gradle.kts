@@ -8,6 +8,7 @@ android {
     compileSdk = 34
     lint {
         abortOnError = false
+        checkReleaseBuilds = false
     }
 
     defaultConfig {
