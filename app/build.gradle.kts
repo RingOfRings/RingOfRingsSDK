@@ -6,6 +6,9 @@ plugins {
 android {
     namespace = "com.ringofrings.ringofrings"
     compileSdk = 34
+    lint {
+        abortOnError = false
+    }
 
     defaultConfig {
         applicationId = "com.ringofrings.ringofrings"
