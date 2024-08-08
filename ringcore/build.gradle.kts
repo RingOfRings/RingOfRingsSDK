@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.library")
-//    alias(libs.plugins.android.application)
+//    id("com.android.library")
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrains.kotlin.android)
     `maven-publish`
 }
@@ -20,6 +20,7 @@ android {
 //        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
