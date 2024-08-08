@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.5"
+version = "1.0.6"
 group = "com.github.RingOfRings"
 
 android {
@@ -18,22 +18,21 @@ android {
     }
 
     defaultConfig {
-//        applicationId = "com.ringofrings.ringofrings.core"
         minSdk = 28
-//        targetSdk = 34
-//        versionCode = 1
-//        versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
+        debug {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+            )
+        }
+
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
             )
         }
     }
