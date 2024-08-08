@@ -5,7 +5,7 @@ plugins {
     `maven-publish`
 }
 
-version = "1.0.9"
+version = "1.1.0"
 group = "com.github.RingOfRings"
 
 
@@ -15,7 +15,7 @@ publishing {
 //            from(components["java"])
             groupId = "com.github.RingOfRings"
             artifactId = "RingOfRingsSDK"
-            version = "1.0.9"
+            version = "1.1.0"
             pom {
                 name = "RingOfRings Core Library"
                 description = "RingOfRings  core sdk library"
@@ -88,7 +88,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -106,6 +105,16 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }
 
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<ProcessResources> {
+    filesMatching("lint-resources.xml") {
+        exclude()
+    }
+}
+
 configurations.all {
     resolutionStrategy {
         // 특정 모듈의 버전을 강제로 지정
@@ -115,12 +124,12 @@ configurations.all {
     exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-}
-
-tasks.withType<ProcessResources> {
-    filesMatching("lint-resources.xml") {
-        exclude()
+afterEvaluate {
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.bouncycastle") {
+                useVersion("1.68")
+            }
+        }
     }
 }
